@@ -33,6 +33,7 @@ Demo 主要通过模拟实现以下几个事件，来模拟本项目在网约车
   insert into cars set id=?,location, for duplicate.. set status=on,location..
   ``` 
 
+TODO: 该脚本可以模拟初始化大量司机。
 
 #### 司机下班
 1. 检查是否正在订单中，若否，拒绝
