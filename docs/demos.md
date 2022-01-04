@@ -88,10 +88,7 @@ commit()
 
 1. 所有数据更新都写入到 TiDB,这里 TIDB 提供 OLTP.
 2. 用户获取最近空闲车辆信息，从 Flink 实时计算获取。
-3. Flink 内存中，存当前所有 car 的状态，以供 2 进行实时计算。
-   1. Flink 在初始化时，将 TiDB 中的 cars 表全量导入到内存。
-   2. 实时更新数据从 Pravega 中获取
-4. TiDB 数据通过 Flink CDC 到 Pravega 和 DataLack
+3. TiDB 数据通过 Flink CDC 到 Pravega 和 DataLake
    1. 实时分析通过 Pravega 提供给 Flink 进行计算
-   2. 离线分析通过 DataLack.
-5. WEB 前端数据从 DataLake 获取（离线分析）
+   2. 离线分析通过 Data Lake.
+4. WEB 前端数据从 DataLake 获取（离线分析）
