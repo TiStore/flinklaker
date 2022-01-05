@@ -17,7 +17,7 @@
 - from_y:int
 - to_x:int
 - to_y:int
-- status:on/closed
+- status:running/finished/waiting
 - createtime: DATETIME
 - updatetime: DATETIME
 
@@ -94,8 +94,21 @@ commit()
 4. WEB 前端数据从 DataLake 获取（离线分析）
 
 
-## 目前 Demo 走 HTTP 协议
+# 目前 Demo 走 HTTP 协议
+## Web 启动条件：
+数据库条件 ：
+- 目前默认连接方式  "root:@tcp(127.0.0.1:4000)/test?charset=utf8"，可根据需要修改 main 函数对应内容。
+- 创建表：./data/create_table.sql
+- 启动方式：
+```
+cd ../web
+go build
+./web 
+```
+## 接口说明
 ### 司机上班
+司机状态变为 running.
+上班条件为：当前司机状态处于 offline.
 ```
 // PUT /car/{id}?x=${x}&y=${y}
 // create a car or online a car
@@ -103,6 +116,8 @@ commit()
 ```
 
 ### 司机下班
+司机状态变为 offline. 
+下班条件为：当前司机状态为 idle. 
 
 ```
 // DELETE /car/{id}
@@ -111,14 +126,18 @@ commit()
 ```
 
 ### 乘客下单
+下单后，当前订单状态为 waiting, 等待接单
+
 ```
 // PUT /order?fromx=?&fromy=?&tox=?toy=?
 // a new order
 // Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12&toy=13"
 ```
 
-### 订单结束
 
+### 结束订单
+结束订单后，订单状态变为 finished, 司机状态变为 idle.
+结束条件为：当前订单状态为 running.
 ```
 // DELETE /order/{orderID}
 // Finish an order

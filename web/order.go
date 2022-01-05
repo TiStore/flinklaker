@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -38,7 +40,7 @@ func beginTxnAndOrderByID(orderID int64) (*core.Tx, *Order, error) {
 	}
 	raws := txn.QueryRow("select status,from_x,from_y,to_x,to_y,car_id from orders where order_id=?", orderID)
 	order := Order{Id: orderID}
-	err = raws.Scan(&order.Status, &order.FromX, &order.FromY, &order.ToX, &order.ToY, order.CarID)
+	err = raws.Scan(&order.Status, &order.FromX, &order.FromY, &order.ToX, &order.ToY, &order.CarID)
 	if err != nil {
 		return txn, nil, err
 	}
@@ -52,30 +54,47 @@ func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 	order := &Order{}
 	var err error
+	defer func() {
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+	}()
 	order.FromX, err = strconv.ParseInt(values.Get("fromx"), 0, 64)
 	if err != nil {
-		writeError(w, err)
+		err = fmt.Errorf("parse arg(fromx) faild:%v", err)
 		return
 	}
 	order.FromY, err = strconv.ParseInt(values.Get("fromy"), 0, 64)
 	if err != nil {
-		writeError(w, err)
+		err = fmt.Errorf("parse arg(fromy) faild:%v", err)
 		return
 	}
 
 	order.ToX, err = strconv.ParseInt(values.Get("tox"), 0, 64)
 	if err != nil {
-		writeError(w, err)
+		err = fmt.Errorf("parse arg(tox) faild:%v", err)
 		return
 	}
 	order.ToY, err = strconv.ParseInt(values.Get("toy"), 0, 64)
 	if err != nil {
-		writeError(w, err)
+		err = fmt.Errorf("parse arg(toy) faild:%v", err)
 		return
 	}
+	var res sql.Result
+	res, err = engine.Exec("insert into orders set from_x=?,from_y=?,to_x=?,to_y=?,status='waiting'", order.FromX, order.FromY, order.ToX, order.ToY)
+	if err != nil {
+		err = fmt.Errorf("insert  db(order) failed:%v", err)
+		return
+	}
+	orderID, err := res.LastInsertId()
+	if err != nil || orderID == 0 {
+		err = fmt.Errorf("insert  db(order) failed:%v,lastinsertID:%d", err, orderID)
+		return
+	}
+	// TODO: Wait for car?? flink ??
+	w.Write([]byte(fmt.Sprintf("Register order (id:%v) Success,waiting for cars", orderID)))
 
-	engine.InsertOne(order)
-	// TODO:
 }
 
 // DELETE /order/{orderID}
@@ -89,19 +108,42 @@ func DeleteOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tx, order, err := beginTxnAndOrderByID(orderID)
+
+	defer func() {
+		if err != nil {
+			if tx != nil {
+				tx.Rollback()
+			}
+			writeError(w, err)
+		}
+	}()
 	if err != nil {
-		writeError(w, err)
+		err = fmt.Errorf("Get Order(id:%v) Failed:%v", orderID, err)
 		return
 	}
-	defer tx.Commit()
-
-	// TODOO:
-	// Set car to idle & update the location
-	res, err := tx.Exec("update cars set status='idle',location_x=?,location_y=? where id=?", order.ToX, order.ToY, order.CarID)
-	rows, err := res.RowsAffected()
-	if rows == 0 {
-
+	if order.Status != "running" {
+		err = fmt.Errorf("Finish order(id:%v) Failed,invalid status: %v\n", orderID, order.Status)
+		return
 	}
-	// TODO Update order's status
+	var res sql.Result
+	// Set car to idle & update the location
+	res, err = tx.Exec("update cars set status='idle',location_x=?,location_y=? where id=?", order.ToX, order.ToY, order.CarID)
+	if err != nil {
+		err = fmt.Errorf("update db(cars) failed:%v", err)
+		return
+	}
+	var rows int64
+	rows, err = res.RowsAffected()
+	if err != nil || rows == 0 {
+		err = fmt.Errorf("update db(cars) failed:%v,affected rows:%v", err, rows)
+		return
+	}
+	_, err = tx.Exec("update orders set status='finished' where id=?", orderID)
+	if err != nil {
+		return
+	}
+
+	err = tx.Commit()
+	w.Write([]byte(fmt.Sprintf("Finish order (id:%v) Success,car(id:%v) is idle now", orderID, order.CarID)))
 
 }

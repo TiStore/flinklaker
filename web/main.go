@@ -15,8 +15,10 @@ func main() {
 	r := mux.NewRouter()
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", YourHandler)
-	// Routes consist of a path and a handler function.
+
 	r.HandleFunc("/car/{id}", CarHandler)
+	r.HandleFunc("/order/{id}", OrderHandler)
+	r.HandleFunc("/order", OrderHandler)
 	var err error
 	engine, err = xorm.NewEngine("mysql", "root:@tcp(127.0.0.1:4000)/test?charset=utf8")
 	if err != nil {
@@ -39,6 +41,14 @@ func CarHandler(w http.ResponseWriter, r *http.Request) {
 		PutNewCar(w, r)
 	} else if r.Method == http.MethodDelete {
 		DeleteCar(w, r)
+	}
+}
+
+func OrderHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPut {
+		PutNewOrder(w, r)
+	} else if r.Method == http.MethodDelete {
+		DeleteOrder(w, r)
 	}
 }
 
