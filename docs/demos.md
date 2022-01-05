@@ -92,3 +92,35 @@ commit()
    1. 实时分析通过 Pravega 提供给 Flink 进行计算
    2. 离线分析通过 Data Lake.
 4. WEB 前端数据从 DataLake 获取（离线分析）
+
+
+## 目前 Demo 走 HTTP 协议
+### 司机上班
+```
+// PUT /car/{id}?x=${x}&y=${y}
+// create a car or online a car
+// Example: curl -X PUT "http://localhost:8000/car/1?x=12&y=13"
+```
+
+### 司机下班
+
+```
+// DELETE /car/{id}
+// offline a car
+// Example: curl -X DELETE "http://localhost:8000/car/1"
+```
+
+### 乘客下单
+```
+// PUT /order?fromx=?&fromy=?&tox=?toy=?
+// a new order
+// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12&toy=13"
+```
+
+### 订单结束
+
+```
+// DELETE /order/{orderID}
+// Finish an order
+// Example: curl -X DELETE "http://localhost:8000/order/1"
+```

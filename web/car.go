@@ -90,7 +90,7 @@ func PutNewCar(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write([]byte(fmt.Sprintf("online a car success! ID:%v,location(%v,%v),dd %v,err %v\n", carID, loX, loY, n, err)))
 }
 
-// DELETE /car/{id}?x=${x}&y=${y}
+// DELETE /car/{id}
 // offline a car
 // Example: curl -X DELETE "http://localhost:8000/car/1"
 func DeleteCar(w http.ResponseWriter, r *http.Request) {
