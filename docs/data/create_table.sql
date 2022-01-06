@@ -27,6 +27,6 @@ create table nearcars(
   cars varchar(1000),
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   consumed int,
-  key(consumed, `create_time`),
+  key(consumed, order_id),
   PRIMARY KEY(`id`)
 );

@@ -4,8 +4,8 @@
 
 ### cars,记录当前车辆地址，状态信息
 - id: 唯一标识,BIGINT
-- location-x: int
-- location-y:int
+- location-x: double
+- location-y:double
 - status: idle/running/off,varchar
 - createtime: DATETIME
 - updatetime: DATETIME
@@ -13,14 +13,17 @@
 ### orders，记录乘客订单信息
 - id:唯一标识 BIGINT
 - car_id: 当前用车 BIGINT
-- from_x:int
-- from_y:int
-- to_x:int
-- to_y:int
+- from_x:double
+- from_y:double
+- to_x:double
+- to_y:double
 - status:running/finished/waiting
 - createtime: DATETIME
 - updatetime: DATETIME
 
+
+### nearcars, 记录 flink 计算出来的最近 N 辆车信息
+- id:唯一标识
 
 ## 脚本监听事件说明
 Demo 主要通过模拟实现以下几个事件，来模拟本项目在网约车实时调度。
@@ -143,3 +146,5 @@ go build
 // Finish an order
 // Example: curl -X DELETE "http://localhost:8000/order/1"
 ```
+
+
