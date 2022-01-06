@@ -153,8 +153,9 @@ go build
 ```
 ### 随机获取可用 location(调试用)
 
+```
 // GET /location
 // get a location randomly
 // Example: curl -X GET "http://localhost:8000/location"
 // {"Id":20424,"X":40.25,"Y":115.53}
-
+```
