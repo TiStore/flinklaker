@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -10,28 +11,38 @@ const (
 )
 
 func ProcessDemo() {
-	var source, sink Pos
+	var source, sink *Pos
 	for {
 		source = generateMapPoint()
 		sink = generateMapPoint()
-		if !cmp(source, sink) {
+		if !cmp(*source, *sink) {
 			break
 		}
 	}
-	orderID := sendOrder(source, sink)
-	distance := dis(sink, source)
+	orderID := sendOrder(*source, *sink)
+	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance) * time.Second
 	time.Sleep(orderBaseDuration + distanceDuration)
 	overOrder(orderID)
 }
 
 func sendOrder(source, sink Pos) int {
-	_, err := doPut(endpoint, fmt.Sprintf("%s?fromx=%f&fromy=%f&tox=%f&toy=%f", orderPrefix, source.x, source.y, sink.x, sink.y))
+	content, err := doPut(endpoint, fmt.Sprintf("%s?fromx=%f&fromy=%f&tox=%f&toy=%f", orderPrefix, source.x, source.y, sink.x, sink.y))
 	if err != nil {
 		fmt.Println(err)
 		return -1
 	}
-	return 0
+	data := make(map[string]interface{})
+	err = json.Unmarshal(content, &data)
+	if err != nil {
+		fmt.Println(err)
+		return -1
+	}
+	id, ok := data["id"].(int)
+	if !ok {
+		return -1
+	}
+	return id
 }
 
 func overOrder(id int) error {

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"math/rand"
@@ -10,6 +12,8 @@ import (
 
 const (
 	eps = 1e-4
+
+	locationProfix = "/location"
 )
 
 type Pos struct {
@@ -55,8 +59,28 @@ func generateRandomNumber(start int, end int, count int) []int {
 	return ret
 }
 
-func generateMapPoint() Pos {
-	return Pos{x: 0., y: 0.}
+func generateMapPoint() *Pos {
+	content, err := doGet(endpoint, locationProfix)
+	if err != nil {
+		return nil
+	}
+	data := make(map[string]interface{})
+	err = json.Unmarshal(content, &data)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	x, ok := data["x"].(float64)
+	if !ok {
+		fmt.Println(err)
+		return nil
+	}
+	y, ok := data["y"].(float64)
+	if !ok {
+		fmt.Println(err)
+		return nil
+	}
+	return &Pos{x: x, y: y}
 }
 
 func doRequest(req *http.Request) ([]byte, error) {

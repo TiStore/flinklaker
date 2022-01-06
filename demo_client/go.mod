@@ -1,3 +1,3 @@
-module demo
+module demo_client
 
 go 1.17
