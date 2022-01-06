@@ -44,6 +44,6 @@ func changeShifts() {
 
 func OrderDemo() {
 	for i := 0; i < orderNum; i++ {
-		go ProcessDemo()
+		go ProcessOrder()
 	}
 }
