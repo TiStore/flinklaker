@@ -185,6 +185,127 @@ commit()
    2. 离线分析通过 Data Lake.
       1. WEB 前端数据从 DataLake 获取（离线分析）
 
+TiDB CDC 数据入湖 SQL 
+```
+SET execution.checkpointing.interval=3s;
+-- 源表
+CREATE TABLE tidb_cars ( 
+    `id` INT NOT NULL, 
+     location_x DOUBLE,
+     location_y DOUBLE,
+     status STRING,
+     create_time TIMESTAMP(3),
+     update_time TIMESTAMP(3),
+     PRIMARY KEY (`id`) NOT ENFORCED) 
+WITH ( 
+    'connector' = 'tidb-cdc',
+    'hostname' = '127.0.0.1',
+    'port' = '4000',
+    'tikv.grpc.timeout_in_ms' = '1000',
+    'tikv.pd.addresses' = '127.0.0.1:2379', 
+    'username' = 'flinkuser',
+    'password' = 'flinkpwd',
+    'database-name' = 'test',
+    'table-name' = 'cars');
+
+-- 源表
+CREATE TABLE tidb_orders ( 
+     order_id INT NOT NULL, 
+     car_id INT,
+     from_x DOUBLE,
+     from_y DOUBLE,
+     to_x DOUBLE,
+     to_y DOUBLE,
+     status STRING,
+     create_time TIMESTAMP(3),
+     update_time TIMESTAMP(3),
+     PRIMARY KEY (`order_id`) NOT ENFORCED) 
+WITH ( 
+    'connector' = 'tidb-cdc',
+    'hostname' = '127.0.0.1',
+    'port' = '4000',
+    'tikv.grpc.timeout_in_ms' = '1000',
+    'tikv.pd.addresses' = '127.0.0.1:2379', 
+    'username' = 'flinkuser',
+    'password' = 'flinkpwd',
+    'database-name' = 'test',
+    'table-name' = 'orders');
+ 
+ -- 源表
+ CREATE TABLE tidb_nearcars ( 
+     order_id INT,
+     cars STRING,
+     consumed INT,
+     create_time TIMESTAMP(3),
+     PRIMARY KEY (`order_id`) NOT ENFORCED) 
+WITH ( 
+   'connector' = 'tidb-cdc',
+    'hostname' = '127.0.0.1',
+    'port' = '4000',
+    'tikv.grpc.timeout_in_ms' = '1000',
+    'tikv.pd.addresses' = '127.0.0.1:2379', 
+    'username' = 'flinkuser',
+    'password' = 'flinkpwd',
+    'database-name' = 'test',
+    'table-name' = 'nearcars');
+
+
+CREATE TABLE hudi_orders(
+     order_id INT NOT NULL, 
+     car_id INT,
+     from_x DOUBLE,
+     from_y DOUBLE,
+     to_x DOUBLE,
+     to_y DOUBLE,
+     status STRING,
+     create_time TIMESTAMP(3),
+     update_time TIMESTAMP(3),
+     PRIMARY KEY (`order_id`) NOT ENFORCED
+)
+WITH (
+  'connector' = 'hudi',
+  'path' = '///home/ec2-user/data/orders',
+  'table.type' = 'MERGE_ON_READ'
+ );
+ 
+ CREATE TABLE hudi_cars(
+     `id` INT NOT NULL, 
+     location_x DOUBLE,
+     location_y DOUBLE,
+     status STRING,
+     create_time TIMESTAMP(3),
+     update_time TIMESTAMP(3),
+     PRIMARY KEY (`id`) NOT ENFORCED
+)
+WITH (
+  'connector' = 'hudi',
+  'path' = '///home/ec2-user/data/cars',
+  'table.type' = 'MERGE_ON_READ'
+ );
+ 
+ CREATE TABLE hudi_nearcars(
+     order_id INT,
+     cars STRING,
+     consumed INT,
+     create_time TIMESTAMP(3),
+     PRIMARY KEY (`order_id`) NOT ENFORCED
+)
+WITH (
+  'connector' = 'hudi',
+  'path' = '///home/ec2-user/data/nearcars',
+  'table.type' = 'MERGE_ON_READ',
+  'read.streaming.enabled' = 'true'
+ );
+ 
+ -- 实时同步作业，将TiDB中的表全增量地同步到 hudi 中
+ begin statement set;
+  insert into hudi_orders select * from tidb_orders;
+  insert into hudi_cars select * from tidb_cars;
+  insert into hudi_nearcars select * from tidb_nearcars;
+ end;
+
+```
+
 
 # 目前 Demo 走 HTTP 协议
 ## Web 启动条件：
