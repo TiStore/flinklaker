@@ -10,7 +10,7 @@ const (
 	orderPrefix = "/order"
 )
 
-func ProcessDemo() {
+func ProcessOrder() {
 	var source, sink *Pos
 	for {
 		source = generateMapPoint()
@@ -22,6 +22,7 @@ func ProcessDemo() {
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance) * time.Second
+	fmt.Printf("order Id : %d\n", orderID)
 	time.Sleep(orderBaseDuration + distanceDuration)
 	overOrder(orderID)
 }
@@ -38,7 +39,7 @@ func sendOrder(source, sink Pos) int {
 		fmt.Println(err)
 		return -1
 	}
-	id, ok := data["id"].(int)
+	id, ok := data["Id"].(int)
 	if !ok {
 		return -1
 	}

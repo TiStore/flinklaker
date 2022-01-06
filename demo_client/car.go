@@ -27,5 +27,6 @@ func letCarGetOffWorkByID(id int) error {
 }
 
 func letCarGoToWorkByID(id int) ([]byte, error) {
-	return doPut(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
+	pos := generateMapPoint()
+	return doPut(endpoint, fmt.Sprintf("%s/%d?x=%f&y=%f", carPrefix, id, pos.x, pos.y))
 }
