@@ -48,7 +48,7 @@ func changeShifts() {
 func OrderDemo() {
 	wg.Add(orderNum)
 	for i := 0; i < orderNum; i++ {
-		go ProcessOrder(wg)
+		go ProcessOrder(*wg)
 	}
 	wg.Wait()
 }

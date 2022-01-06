@@ -21,7 +21,7 @@ func TestMiniDemo(t *testing.T) {
 		wg.Add(2)
 		for i := 0; i < 2; i++ {
 			fmt.Println("i", i)
-			go ProcessOrder(wg)
+			go ProcessOrder(&wg)
 		}
 		wg.Wait()
 
