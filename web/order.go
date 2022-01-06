@@ -49,7 +49,8 @@ func beginTxnAndOrderByID(orderID int64) (*core.Tx, *Order, error) {
 
 // PUT /order?fromx=?&fromy=?&tox=?toy=?
 // a new order
-// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12&toy=13"
+// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12.2&toy=13.3"
+// {"Id":3,"CarID":0,"FromX":1,"FromY":2,"ToX":12.2,"ToY":13.3,"Status":"waiting","CreateTime":"2022-01-06 21:40:23","UpdateTime":"2022-01-06 21:40:23"}
 func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 	order := &Order{}
@@ -81,20 +82,21 @@ func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("parse arg(toy) faild:%v", err)
 		return
 	}
+	order.initTime()
+	order.Status = "waiting"
 	var res sql.Result
-	res, err = engine.Exec("insert into orders set from_x=?,from_y=?,to_x=?,to_y=?,status='waiting'", order.FromX, order.FromY, order.ToX, order.ToY)
+	res, err = engine.Exec("insert into orders set from_x=?,from_y=?,to_x=?,to_y=?,status=?,create_time=?,update_time=?",
+		order.FromX, order.FromY, order.ToX, order.ToY, order.Status, order.CreateTime, order.UpdateTime)
 	if err != nil {
 		err = fmt.Errorf("insert  db(order) failed:%v", err)
 		return
 	}
-	orderID, err := res.LastInsertId()
-	if err != nil || orderID == 0 {
-		err = fmt.Errorf("insert  db(order) failed:%v,lastinsertID:%d", err, orderID)
+	order.Id, err = res.LastInsertId()
+	if err != nil || order.Id == 0 {
+		err = fmt.Errorf("insert  db(order) failed:%v,lastinsertID:%d", err, order.Id)
 		return
 	}
-	// TODO: Wait for car?? flink ??
-	w.Write([]byte(fmt.Sprintf("Register order (id:%v) Success,waiting for cars", orderID)))
-
+	writeJson(w, order)
 }
 
 // DELETE /order/{orderID}

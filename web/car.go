@@ -51,7 +51,7 @@ func beginTxnAndGetCarByID(carID int64) (*core.Tx, *Car, error) {
 
 // PUT /car/{id}?x=${x}&y=${y}
 // create a car or online a car
-// Example: curl -X PUT "http://localhost:8000/car/1?x=12&y=13"
+// Example: curl -X PUT "http://localhost:8000/car/1?x=12.5&y=13.78"
 func PutNewCar(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	carID, err := strconv.ParseInt(params["id"], 0, 64)
