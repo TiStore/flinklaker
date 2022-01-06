@@ -20,3 +20,13 @@ create table orders (
   `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`order_id`) 
 );
+
+create table nearcars(
+  id int(11) not null AUTO_INCREMENT,
+  order_id int(11),
+  cars varchar(1000),
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  consumed int,
+  key(consumed, `create_time`),
+  PRIMARY KEY(`id`)
+);
