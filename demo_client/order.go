@@ -11,7 +11,7 @@ const (
 	orderPrefix = "/order"
 )
 
-func ProcessOrder(wg sync.WaitGroup) {
+func ProcessOrder(wg *sync.WaitGroup) {
 	var source, sink *Pos
 	for {
 		source = generateMapPoint()
@@ -26,6 +26,25 @@ func ProcessOrder(wg sync.WaitGroup) {
 	distanceDuration := time.Duration(distance) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
 	wg.Done()
+	time.Sleep(orderBaseDuration + distanceDuration)
+	fmt.Println(orderBaseDuration + distanceDuration)
+	overOrder(orderID)
+}
+
+func ProcessOrderWithoutWG() {
+	var source, sink *Pos
+	for {
+		source = generateMapPoint()
+		sink = generateMapPoint()
+		if !cmp(*source, *sink) {
+			break
+		}
+	}
+	fmt.Println(source, sink)
+	orderID := sendOrder(*source, *sink)
+	distance := dis(*sink, *source)
+	distanceDuration := time.Duration(distance) * time.Second
+	fmt.Printf("order Id : %d\n", orderID)
 	time.Sleep(orderBaseDuration + distanceDuration)
 	fmt.Println(orderBaseDuration + distanceDuration)
 	overOrder(orderID)

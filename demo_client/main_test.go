@@ -18,11 +18,12 @@ func TestMiniDemo(t *testing.T) {
 
 	for page := 0; page < 1; page++ {
 
+		wg.Add(2)
 		for i := 0; i < 2; i++ {
-			wg.Add(2)
-			go ProcessOrder(wg)
-			wg.Wait()
+			fmt.Println("i", i)
+			go ProcessOrder(&wg)
 		}
+		wg.Wait()
 
 		getOffWorkTest(4)
 		goOnWorkTest(4)
