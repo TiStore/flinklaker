@@ -24,7 +24,11 @@
 
 ### nearcars, 记录 flink 计算出来的最近 N 辆车信息
 - id:唯一标识
-
+- order_id: 订单ID
+- cars:string, json, 表示推荐车辆 ID ，如 [1,2,3,4]
+- consumed: int, 是否被消费过，默认 0 未消费过。1 表示该数据已经被处理过。
+- create_time: Datetime
+  
 ## 脚本监听事件说明
 Demo 主要通过模拟实现以下几个事件，来模拟本项目在网约车实时调度。
 
