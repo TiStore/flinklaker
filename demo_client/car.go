@@ -10,7 +10,9 @@ func getOffWork(n int) {
 	ids := generateRandomNumber(1, pointNum, n)
 	for _, id := range ids {
 		err := letCarGetOffWorkByID(id)
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 

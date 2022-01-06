@@ -99,7 +99,8 @@ func doRequest(req *http.Request) ([]byte, error) {
 }
 
 func doGet(endpoint, prefix string) ([]byte, error) {
-	url := endpoint + "/" + prefix
+	url := endpoint + prefix
+	fmt.Println(url)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -108,7 +109,7 @@ func doGet(endpoint, prefix string) ([]byte, error) {
 }
 
 func doPut(endpoint, prefix string) ([]byte, error) {
-	url := endpoint + "/" + prefix
+	url := endpoint + prefix
 	req, err := http.NewRequest(http.MethodPut, url, nil)
 	if err != nil {
 		return nil, err
@@ -117,7 +118,7 @@ func doPut(endpoint, prefix string) ([]byte, error) {
 }
 
 func doDelete(endpoint, prefix string) error {
-	url := endpoint + "/" + prefix
+	url := endpoint + prefix
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return err
