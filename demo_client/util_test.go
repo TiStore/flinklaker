@@ -7,5 +7,5 @@ import (
 
 func TestLocation(t *testing.T) {
 	pos := generateMapPoint()
-	fmt.Printf("%v\n", *pos)
+	fmt.Printf("test %v\n", *pos)
 }

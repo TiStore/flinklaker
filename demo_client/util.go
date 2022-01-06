@@ -62,21 +62,27 @@ func generateRandomNumber(start int, end int, count int) []int {
 func generateMapPoint() *Pos {
 	content, err := doGet(endpoint, locationProfix)
 	if err != nil {
+		fmt.Println(1)
+		fmt.Println(err)
 		return nil
 	}
 	data := make(map[string]interface{})
 	err = json.Unmarshal(content, &data)
 	if err != nil {
+		fmt.Println(2)
 		fmt.Println(err)
 		return nil
 	}
 	x, ok := data["x"].(float64)
+	fmt.Println(data)
 	if !ok {
+		fmt.Println(3)
 		fmt.Println(err)
 		return nil
 	}
 	y, ok := data["y"].(float64)
 	if !ok {
+		fmt.Println(4)
 		fmt.Println(err)
 		return nil
 	}
