@@ -41,8 +41,9 @@ func generateRandomNumber(start int, end int, count int) []int {
 	ret := make([]int, 0, count)
 	generator := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < count; i++ {
-		toAdd := generator.Intn(end-start) + start
+		var toAdd int
 		for {
+			toAdd = generator.Intn(end-start+1) + start
 			ok := true
 			for _, item := range ret {
 				if item == toAdd {
@@ -62,27 +63,22 @@ func generateRandomNumber(start int, end int, count int) []int {
 func generateMapPoint() *Pos {
 	content, err := doGet(endpoint, locationProfix)
 	if err != nil {
-		fmt.Println(1)
 		fmt.Println(err)
 		return nil
 	}
 	data := make(map[string]interface{})
 	err = json.Unmarshal(content, &data)
 	if err != nil {
-		fmt.Println(2)
 		fmt.Println(err)
 		return nil
 	}
-	x, ok := data["x"].(float64)
-	fmt.Println(data)
+	x, ok := data["X"].(float64)
 	if !ok {
-		fmt.Println(3)
 		fmt.Println(err)
 		return nil
 	}
-	y, ok := data["y"].(float64)
+	y, ok := data["Y"].(float64)
 	if !ok {
-		fmt.Println(4)
 		fmt.Println(err)
 		return nil
 	}
