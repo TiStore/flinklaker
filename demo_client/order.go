@@ -19,11 +19,13 @@ func ProcessOrder() {
 			break
 		}
 	}
+	fmt.Println(source, sink)
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
 	time.Sleep(orderBaseDuration + distanceDuration)
+	fmt.Println(orderBaseDuration + distanceDuration)
 	overOrder(orderID)
 }
 

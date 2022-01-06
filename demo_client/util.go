@@ -100,7 +100,6 @@ func doRequest(req *http.Request) ([]byte, error) {
 
 func doGet(endpoint, prefix string) ([]byte, error) {
 	url := endpoint + prefix
-	fmt.Println(url)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
