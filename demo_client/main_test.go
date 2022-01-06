@@ -16,17 +16,19 @@ func TestMiniDemo(t *testing.T) {
 	}
 	goOnWork(20)
 
-	for page := 0; page < 2; page++ {
-		fmt.Println(page)
+	for page := 0; page < 1; page++ {
 
 		for i := 0; i < 2; i++ {
-			go ProcessOrder()
+			wg.Add(2)
+			go ProcessOrder(wg)
+			wg.Wait()
 		}
 
 		getOffWorkTest(4)
 		goOnWorkTest(4)
 		time.Sleep(intervalTime)
 	}
+	time.Sleep(10 * time.Second)
 }
 
 func getOffWorkTest(n int) {

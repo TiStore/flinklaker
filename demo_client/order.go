@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -10,7 +11,7 @@ const (
 	orderPrefix = "/order"
 )
 
-func ProcessOrder() {
+func ProcessOrder(wg sync.WaitGroup) {
 	var source, sink *Pos
 	for {
 		source = generateMapPoint()
@@ -24,6 +25,7 @@ func ProcessOrder() {
 	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
+	wg.Done()
 	time.Sleep(orderBaseDuration + distanceDuration)
 	fmt.Println(orderBaseDuration + distanceDuration)
 	overOrder(orderID)
