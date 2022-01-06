@@ -13,15 +13,15 @@ import (
 )
 
 type Order struct {
-	Id         int64  `xorm:"pk autoincr 'order_id'"` //指定主键并自增
-	CarID      int64  `xorm:"'car_id'"`
-	FromX      int64  `xorm:"'from_x'"`
-	FromY      int64  `xorm:"'from_y'"`
-	ToX        int64  `xorm:"'to_x'"`
-	ToY        int64  `xorm:"'to_y'"`
-	Status     string `xorm:"'status'"`
-	CreateTime string `xorm:"created 'create_time'"`
-	UpdateTime string `xorm:"updated 'update_time'"`
+	Id         int64   `xorm:"pk autoincr 'order_id'"` //指定主键并自增
+	CarID      int64   `xorm:"'car_id'"`
+	FromX      float64 `xorm:"'from_x'"`
+	FromY      float64 `xorm:"'from_y'"`
+	ToX        float64 `xorm:"'to_x'"`
+	ToY        float64 `xorm:"'to_y'"`
+	Status     string  `xorm:"'status'"`
+	CreateTime string  `xorm:"created 'create_time'"`
+	UpdateTime string  `xorm:"updated 'update_time'"`
 }
 
 func (c *Order) TableName() string {
@@ -60,23 +60,23 @@ func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}()
-	order.FromX, err = strconv.ParseInt(values.Get("fromx"), 0, 64)
+	order.FromX, err = strconv.ParseFloat(values.Get("fromx"), 64)
 	if err != nil {
 		err = fmt.Errorf("parse arg(fromx) faild:%v", err)
 		return
 	}
-	order.FromY, err = strconv.ParseInt(values.Get("fromy"), 0, 64)
+	order.FromY, err = strconv.ParseFloat(values.Get("fromy"), 64)
 	if err != nil {
 		err = fmt.Errorf("parse arg(fromy) faild:%v", err)
 		return
 	}
 
-	order.ToX, err = strconv.ParseInt(values.Get("tox"), 0, 64)
+	order.ToX, err = strconv.ParseFloat(values.Get("tox"), 64)
 	if err != nil {
 		err = fmt.Errorf("parse arg(tox) faild:%v", err)
 		return
 	}
-	order.ToY, err = strconv.ParseInt(values.Get("toy"), 0, 64)
+	order.ToY, err = strconv.ParseFloat(values.Get("toy"), 64)
 	if err != nil {
 		err = fmt.Errorf("parse arg(toy) faild:%v", err)
 		return

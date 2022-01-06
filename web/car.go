@@ -12,19 +12,19 @@ import (
 )
 
 type Car struct {
-	Id         int64  `xorm:"pk autoincr"` //指定主键并自增
-	LocationX  int64  `xorm:"'location_x'"`
-	LocationY  int64  `xorm:"'location_y'"`
-	Status     string `xorm:"'status'"`
-	CreateTime string `xorm:"created 'create_time'"`
-	UpdateTime string `xorm:"updated 'update_time'"`
+	Id         int64   `xorm:"pk autoincr"` //指定主键并自增
+	LocationX  float64 `xorm:"'location_x'"`
+	LocationY  float64 `xorm:"'location_y'"`
+	Status     string  `xorm:"'status'"`
+	CreateTime string  `xorm:"created 'create_time'"`
+	UpdateTime string  `xorm:"updated 'update_time'"`
 }
 
 func (c *Car) TableName() string {
 	return "cars"
 }
 
-func NewCar(id, x, y int64) *Car {
+func NewCar(id int64, x, y float64) *Car {
 	return &Car{
 		Id:         id,
 		LocationX:  x,
@@ -62,12 +62,12 @@ func PutNewCar(w http.ResponseWriter, r *http.Request) {
 
 	values := r.URL.Query()
 
-	loX, err := strconv.ParseInt(values.Get("x"), 0, 64)
+	loX, err := strconv.ParseFloat(values.Get("x"), 64)
 	if err != nil {
 		writeError(w, err)
 		return
 	}
-	loY, err := strconv.ParseInt(values.Get("y"), 0, 64)
+	loY, err := strconv.ParseFloat(values.Get("y"), 64)
 	if err != nil {
 		writeError(w, err)
 		return
