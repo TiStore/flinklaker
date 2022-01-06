@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
+
+var wg sync.WaitGroup
 
 const (
 	pointNum        = 36668
@@ -43,7 +46,9 @@ func changeShifts() {
 }
 
 func OrderDemo() {
+	wg.Add(orderNum)
 	for i := 0; i < orderNum; i++ {
-		go ProcessOrder()
+		go ProcessOrder(wg)
 	}
+	wg.Wait()
 }
