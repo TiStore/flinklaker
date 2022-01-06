@@ -56,14 +56,11 @@ commit
 
 ### 乘客
 #### 乘客下单
-1. 根据当前乘客的位置信息，使用 flink 计算出适合他的车辆信息
-```
-TODO: Flink SQL
-```
-
-2. 将下单数据更新到 TiDB
+1. 将当前乘客的订单信息入库，订单状态为 waiting.
+后端异步线程：
+  　　Flink 实时计算合适 车辆，并将下单数据更新到 TiDB
     - 更新当前车辆状态为 running
-    - 创建订单信息 order
+    - 更新订单信息 order 到 running 
 
 ``` TIDB 
  begin()
@@ -94,11 +91,12 @@ commit()
 ![./img/data.jpg](./img/data.jpg)
 
 1. 所有数据更新都写入到 TiDB,这里 TIDB 提供 OLTP.
-2. 用户获取最近空闲车辆信息，从 Flink 实时计算获取。
-3. TiDB 数据通过 Flink CDC 到 Pravega 和 DataLake
+2. TiDB 数据通过 Flink CDC 到 Pravega 和 DataLake
    1. 实时分析通过 Pravega 提供给 Flink 进行计算
+      1. Flink 计算完以后在将结果放入 pravega
+      2. 后端有个线程专门处理 pravega 里面的车辆推荐结果，去 tidb 下单。
    2. 离线分析通过 Data Lake.
-4. WEB 前端数据从 DataLake 获取（离线分析）
+      1. WEB 前端数据从 DataLake 获取（离线分析）
 
 
 # 目前 Demo 走 HTTP 协议
