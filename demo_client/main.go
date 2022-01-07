@@ -56,7 +56,9 @@ func FirstDemo() {
 			distanceLimit:     0.0001,
 		},
 	}
-	demo.initDemo(0, 0)
+	flag.IntVar(&orderBegin, "ob", 0, "")
+	flag.IntVar(&orderEnd, "oe", 0, "")
+	demo.initDemo(orderBegin, orderEnd)
 
 	for page := 0; page < demo.demoTimes; page++ {
 		fmt.Println(page)
