@@ -65,7 +65,7 @@ Flink 实时推荐适合 车辆，并将下单数据更新到 TiDB:
 ```
 -- 设置下时区
 SET 'table.local-time-zone' = 'Asia/Shanghai';
-SET execution.result-mode=tableau
+SET execution.result-mode=tableau;
 
 -- 源表
 CREATE TABLE tidb_cars ( 
@@ -265,6 +265,8 @@ CREATE TABLE hudi_orders(
 WITH (
   'connector' = 'hudi',
   'path' = '///home/ec2-user/data/orders',
+    'write.tasks' = '1',
+  'compaction.tasks' = '1',
   'table.type' = 'MERGE_ON_READ'
  );
  
@@ -280,6 +282,8 @@ WITH (
 WITH (
   'connector' = 'hudi',
   'path' = '///home/ec2-user/data/cars',
+    'write.tasks' = '1',
+  'compaction.tasks' = '1',
   'table.type' = 'MERGE_ON_READ'
  );
  
@@ -294,6 +298,8 @@ WITH (
   'connector' = 'hudi',
   'path' = '///home/ec2-user/data/nearcars',
   'table.type' = 'MERGE_ON_READ',
+  'write.tasks' = '1',
+  'compaction.tasks' = '1',
   'read.streaming.enabled' = 'true'
  );
  
