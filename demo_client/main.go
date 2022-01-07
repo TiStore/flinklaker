@@ -32,21 +32,21 @@ type Param struct {
 }
 
 var orderBegin, orderEnd int
-var onlyCloseOrder bool
+var action int
 
 func main() {
 
-	flag.BoolVar(&onlyCloseOrder, "close", false, "")
+	flag.IntVar(&action, "t", 0, "")
 
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
 
-	if onlyCloseOrder {
+	if action == 1 {
 		closeOrder(orderBegin, orderEnd)
 		return
+	} else if action == 0 {
+		FirstDemo()
 	}
-
-	FirstDemo()
 }
 
 func FirstDemo() {
