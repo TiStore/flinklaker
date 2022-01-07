@@ -27,7 +27,7 @@ func (d *Demo) doDemo() {
 		d.changeShifts()
 		oneTime.Wait()
 	}
-	time.Sleep(15 * time.Second)
+	time.Sleep(30 * time.Second)
 }
 
 func (d *Demo) initDemo(begin, end int) {

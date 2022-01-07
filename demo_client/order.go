@@ -31,6 +31,7 @@ func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 	fmt.Printf("order Id : %d\n", orderID)
 	wg.Done()
 	for i := 0; i < 10; i++ {
+		fmt.Println(d.orderBaseDuration + distanceDuration)
 		time.Sleep(d.orderBaseDuration + distanceDuration)
 		if overOrder(orderID) {
 			break
