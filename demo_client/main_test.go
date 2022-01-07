@@ -46,6 +46,8 @@ func goOnWorkTest(n int) {
 	ids := generateRandomNumber(1, 20, n)
 	for _, id := range ids {
 		_, err := letCarGoToWorkByID(id)
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }

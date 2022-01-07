@@ -18,7 +18,7 @@ const (
 	demoDuration      = 20
 	intervalTime      = 1 * time.Second
 
-	endpoint = "http://localhost:8000"
+	endpoint = "http://localhost:7998"
 )
 
 func main() {

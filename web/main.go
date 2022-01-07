@@ -34,7 +34,7 @@ func main() {
 	}
 	go CheckAndRunninigOrders()
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(":7998", r))
 }
 
 func CheckAndRunninigOrders() {

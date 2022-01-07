@@ -58,11 +58,15 @@ func sendOrder(source, sink Pos) int {
 	}
 	data := make(map[string]interface{})
 	err = json.Unmarshal(content, &data)
+	fmt.Println(data)
 	if err != nil {
 		fmt.Println(err)
 		return -1
 	}
 	id, ok := data["Id"].(int)
+	for key, value := range data {
+		fmt.Println(key, value)
+	}
 	if !ok {
 		return -1
 	}
