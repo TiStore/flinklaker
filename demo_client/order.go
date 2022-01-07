@@ -12,45 +12,30 @@ const (
 	orderPrefix = "/order"
 )
 
-func ProcessOrder(wg *sync.WaitGroup) {
+func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 	var source, sink *Pos
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 20; i++ {
 		source = generateMapPoint()
 		sink = generateMapPoint()
-		if !cmp(*source, *sink) {
-			break
+		if source == nil || sink == nil {
+			continue
 		}
-	}
-	orderID := sendOrder(*source, *sink)
-	distance := dis(*sink, *source)
-	distanceDuration := time.Duration(distance*5) * time.Second
-	fmt.Printf("order Id : %d\n", orderID)
-	wg.Done()
-	for i := 0; i < 10; i++ {
-		time.Sleep(orderBaseDuration + distanceDuration)
-		fmt.Println(orderBaseDuration + distanceDuration)
-		if overOrder(orderID) {
-			break
-		}
-	}
-}
-
-func ProcessOrderWithoutWG() {
-	var source, sink *Pos
-	for {
-		source = generateMapPoint()
-		sink = generateMapPoint()
-		if !cmp(*source, *sink) {
+		if dis(*source, *sink) > d.distanceLimit {
 			break
 		}
 	}
 	fmt.Println(source, sink)
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
-	distanceDuration := time.Duration(distance) * time.Second
+	distanceDuration := time.Duration(distance*5) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
-	time.Sleep(orderBaseDuration + distanceDuration)
-	overOrder(orderID)
+	wg.Done()
+	for i := 0; i < 10; i++ {
+		time.Sleep(d.orderBaseDuration + distanceDuration)
+		if overOrder(orderID) {
+			break
+		}
+	}
 }
 
 func sendOrder(source, sink Pos) int {

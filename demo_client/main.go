@@ -3,24 +3,33 @@ package main
 import (
 	"flag"
 	"fmt"
-	"sync"
 	"time"
 )
 
-var wg sync.WaitGroup
-
 const (
-	pointNum        = 36668
-	initOnWorkNum   = 2000
-	changeShiftsNum = 300
-	orderNum        = 50
+	PointNum        = 36668
+	InitOnWorkNum   = 2000
+	ChangeShiftsNum = 300
+	OrderNum        = 50
 
-	orderBaseDuration = 5 * time.Second
-	demoDuration      = 20
-	intervalTime      = 2 * time.Second
+	OrderBaseDuration = 5 * time.Second
+	DemoTimes         = 20
+	IntervalTime      = 2 * time.Second
 
 	endpoint = "http://localhost:7998"
 )
+
+type Param struct {
+	pointNum          int
+	initOnWorkNum     int
+	changeShiftsNum   int
+	orderNum          int
+	orderBaseDuration time.Duration
+	demoTimes         int
+	intervalTime      time.Duration
+
+	distanceLimit float64
+}
 
 var orderBegin, orderEnd int
 
@@ -28,38 +37,30 @@ func main() {
 
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
-	initDemo(orderBegin, orderEnd)
+	FirstDemo()
+}
 
-	for page := 0; page < demoDuration; page++ {
+func FirstDemo() {
+	demo := &Demo{
+		Param: Param{
+			pointNum:          50,
+			initOnWorkNum:     10,
+			changeShiftsNum:   3,
+			orderNum:          3,
+			orderBaseDuration: 5 * time.Second,
+			demoTimes:         10,
+			intervalTime:      2 * time.Second,
+			distanceLimit:     0.0001,
+		},
+	}
+	demo.initDemo(0, 1000)
+
+	for page := 0; page < demo.demoTimes; page++ {
 		fmt.Println(page)
 
-		OrderDemo()
+		demo.OrderDemo()
 
-		changeShifts()
-		time.Sleep(intervalTime)
+		demo.changeShifts()
+		time.Sleep(demo.intervalTime)
 	}
-}
-
-func initDemo(begin, end int) {
-	if end > 0 {
-		fmt.Println(begin, end)
-		for i := begin; i < end; i++ {
-			overOrder(i)
-		}
-	}
-	getOffWorkInit()
-	goOnWork(initOnWorkNum)
-}
-
-func changeShifts() {
-	getOffWork(changeShiftsNum)
-	goOnWork(changeShiftsNum)
-}
-
-func OrderDemo() {
-	wg.Add(orderNum)
-	for i := 0; i < orderNum; i++ {
-		go ProcessOrder(&wg)
-	}
-	wg.Wait()
 }

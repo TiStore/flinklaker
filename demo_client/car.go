@@ -8,21 +8,21 @@ const (
 	carPrefix = "/car"
 )
 
-func getOffWorkInit() {
-	for i := 0; i < pointNum; i++ {
+func (d *Demo) getOffWorkInit() {
+	for i := 0; i < d.pointNum; i++ {
 		letCarGetOffWorkByID(i)
 	}
 }
 
-func getOffWork(n int) {
-	ids := generateRandomNumber(1, pointNum, n)
+func (d *Demo) getOffWork(n int) {
+	ids := generateRandomNumber(1, d.pointNum, n)
 	for _, id := range ids {
 		letCarGetOffWorkByID(id)
 	}
 }
 
-func goOnWork(n int) {
-	ids := generateRandomNumber(1, pointNum, n)
+func (d *Demo) goOnWork(n int) {
+	ids := generateRandomNumber(1, d.pointNum, n)
 	for _, id := range ids {
 		_, err := letCarGoToWorkByID(id)
 		if err != nil {
