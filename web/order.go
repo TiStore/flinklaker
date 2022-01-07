@@ -2,9 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -49,7 +52,8 @@ func beginTxnAndOrderByID(orderID int64) (*core.Tx, *Order, error) {
 
 // PUT /order?fromx=?&fromy=?&tox=?toy=?
 // a new order
-// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12&toy=13"
+// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12.2&toy=13.3"
+// {"Id":3,"CarID":0,"FromX":1,"FromY":2,"ToX":12.2,"ToY":13.3,"Status":"waiting","CreateTime":"2022-01-06 21:40:23","UpdateTime":"2022-01-06 21:40:23"}
 func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 	order := &Order{}
@@ -81,20 +85,21 @@ func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("parse arg(toy) faild:%v", err)
 		return
 	}
+	order.initTime()
+	order.Status = "waiting"
 	var res sql.Result
-	res, err = engine.Exec("insert into orders set from_x=?,from_y=?,to_x=?,to_y=?,status='waiting'", order.FromX, order.FromY, order.ToX, order.ToY)
+	res, err = engine.Exec("insert into orders set from_x=?,from_y=?,to_x=?,to_y=?,status=?,create_time=?,update_time=?",
+		order.FromX, order.FromY, order.ToX, order.ToY, order.Status, order.CreateTime, order.UpdateTime)
 	if err != nil {
 		err = fmt.Errorf("insert  db(order) failed:%v", err)
 		return
 	}
-	orderID, err := res.LastInsertId()
-	if err != nil || orderID == 0 {
-		err = fmt.Errorf("insert  db(order) failed:%v,lastinsertID:%d", err, orderID)
+	order.Id, err = res.LastInsertId()
+	if err != nil || order.Id == 0 {
+		err = fmt.Errorf("insert  db(order) failed:%v,lastinsertID:%d", err, order.Id)
 		return
 	}
-	// TODO: Wait for car?? flink ??
-	w.Write([]byte(fmt.Sprintf("Register order (id:%v) Success,waiting for cars", orderID)))
-
+	writeJson(w, order)
 }
 
 // DELETE /order/{orderID}
@@ -138,7 +143,7 @@ func DeleteOrder(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("update db(cars) failed:%v,affected rows:%v", err, rows)
 		return
 	}
-	_, err = tx.Exec("update orders set status='finished' where id=?", orderID)
+	_, err = tx.Exec("update orders set status='finished' where order_id=?", orderID)
 	if err != nil {
 		return
 	}
@@ -146,4 +151,80 @@ func DeleteOrder(w http.ResponseWriter, r *http.Request) {
 	err = tx.Commit()
 	w.Write([]byte(fmt.Sprintf("Finish order (id:%v) Success,car(id:%v) is idle now", orderID, order.CarID)))
 
+}
+
+type NearCars struct {
+	cars    []int64
+	orderID int64
+}
+
+func checkAndRunOrders() error {
+	res, err := engine.Query("select order_id,cars from nearcars where order_id in(select order_id from orders where status='waiting') order by order_id;")
+	if err != nil {
+		return err
+	}
+	var wg sync.WaitGroup
+	for _, data := range res {
+		var order NearCars
+		order.orderID, err = strconv.ParseInt(string(data["order_id"]), 0, 64)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(data["cars"], &order.cars)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("nearcarsinfo:%+v\n", order)
+		wg.Add(1)
+		go func() {
+			//give the order an car.
+			err = runningTheOrder(&order)
+			log.Printf("Finished to running the order:%+v,err:%v\n", order, err)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	return nil
+}
+
+func runningTheOrder(orderCars *NearCars) error {
+	tx, order, err := beginTxnAndOrderByID(orderCars.orderID)
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	if order.Status != "waiting" {
+		log.Printf("This order is not waiting:%+v\n", order)
+		return nil
+	}
+	for _, carID := range orderCars.cars {
+		var res sql.Result
+		res, err = tx.Exec("update cars set status='running' where id=? and status='idle'", carID)
+		if err != nil {
+			return err
+		}
+
+		affectedRow, terr := res.RowsAffected()
+		if terr != nil || affectedRow != 1 {
+			fmt.Printf("unmatched order:%+v,carIID:%d,affactedrow:%d\n", order, carID, affectedRow)
+			continue
+		}
+		order.CarID = carID
+		order.Status = "running"
+		break
+	}
+	order.UpdateTime = time.Now().Format("2006-01-02 15:04:05")
+	var reso sql.Result
+	reso, err = tx.Exec("update orders set status=?,car_id=?,update_time=? where order_id=?", order.Status, order.CarID, order.UpdateTime, order.Id)
+	if err != nil {
+		return err
+	}
+	affacted, _ := reso.RowsAffected()
+	if affacted != 1 {
+		fmt.Printf("affacted row for update orders should not be :%d\n", affacted)
+	}
+	err = tx.Commit()
+	return err
 }
