@@ -89,6 +89,7 @@ type Location struct {
 // Example: curl -X GET "http://localhost:8000/location"
 // {"Id":20424,"X":40.25,"Y":115.53}
 func LocationHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("select id,x,y from locations where id=%d\n", ra.Int63n(50)+50002)
 	raws := engine.DB().QueryRow("select id,x,y from locations where id=?", ra.Int63n(50)+50002)
 	var loca Location
 	err := raws.Scan(&loca.Id, &loca.X, &loca.Y)
