@@ -2,9 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -148,4 +151,80 @@ func DeleteOrder(w http.ResponseWriter, r *http.Request) {
 	err = tx.Commit()
 	w.Write([]byte(fmt.Sprintf("Finish order (id:%v) Success,car(id:%v) is idle now", orderID, order.CarID)))
 
+}
+
+type NearCars struct {
+	cars    []int64
+	orderID int64
+}
+
+func checkAndRunOrders() error {
+	res, err := engine.Query("select order_id,cars from nearcars where order_id in(select order_id from orders where status='waiting') order by order_id;")
+	if err != nil {
+		return err
+	}
+	var wg sync.WaitGroup
+	for _, data := range res {
+		var order NearCars
+		order.orderID, err = strconv.ParseInt(string(data["order_id"]), 0, 64)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(data["cars"], &order.cars)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("nearcarsinfo:%+v\n", order)
+		wg.Add(1)
+		go func() {
+			//give the order an car.
+			err = runningTheOrder(&order)
+			log.Printf("Finished to running the order:%+v,err:%v\n", order, err)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	return nil
+}
+
+func runningTheOrder(orderCars *NearCars) error {
+	tx, order, err := beginTxnAndOrderByID(orderCars.orderID)
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	if order.Status != "waiting" {
+		log.Printf("This order is not waiting:%+v\n", order)
+		return nil
+	}
+	for _, carID := range orderCars.cars {
+		var res sql.Result
+		res, err = tx.Exec("update cars set status='running' where id=? and status='idle'", carID)
+		if err != nil {
+			return err
+		}
+
+		affectedRow, terr := res.RowsAffected()
+		if terr != nil || affectedRow != 1 {
+			fmt.Printf("unmatched order:%+v,carIID:%d,affactedrow:%d\n", order, carID, affectedRow)
+			continue
+		}
+		order.CarID = carID
+		order.Status = "running"
+		break
+	}
+	order.UpdateTime = time.Now().Format("2006-01-02 15:04:05")
+	var reso sql.Result
+	reso, err = tx.Exec("update orders set status=?,car_id=?,update_time=? where order_id=?", order.Status, order.CarID, order.UpdateTime, order.Id)
+	if err != nil {
+		return err
+	}
+	affacted, _ := reso.RowsAffected()
+	if affacted != 1 {
+		fmt.Printf("affacted row for update orders should not be :%d\n", affacted)
+	}
+	err = tx.Commit()
+	return err
 }

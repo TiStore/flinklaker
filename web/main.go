@@ -32,8 +32,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	go CheckAndRunninigOrders()
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8000", r))
+}
+
+func CheckAndRunninigOrders() {
+	for {
+		time.Sleep(time.Second * 5) //just demo
+		err := checkAndRunOrders()
+		log.Println("Finished check and process table nearcars", err)
+	}
 }
 
 func YourHandler(w http.ResponseWriter, r *http.Request) {
