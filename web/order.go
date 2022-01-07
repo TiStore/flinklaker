@@ -143,7 +143,7 @@ func DeleteOrder(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("update db(cars) failed:%v,affected rows:%v", err, rows)
 		return
 	}
-	_, err = tx.Exec("update orders set status='finished' where id=?", orderID)
+	_, err = tx.Exec("update orders set status='finished' where order_id=?", orderID)
 	if err != nil {
 		return
 	}
