@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -33,14 +32,26 @@ type Param struct {
 }
 
 var orderBegin, orderEnd int
+var action int
 
-func main() {
-
-	rand.Seed(time.Now().UnixNano())
+func init() {
+	flag.IntVar(&action, "t", 0, "")
 
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
-	FirstDemo()
+}
+
+func main() {
+
+	flag.Parse()
+
+	fmt.Println(action, orderBegin, orderEnd)
+	if action == 1 {
+		closeOrder(orderBegin, orderEnd)
+		return
+	} else if action == 0 {
+		FirstDemo()
+	}
 }
 
 func FirstDemo() {
@@ -52,18 +63,9 @@ func FirstDemo() {
 			orderNum:          3,
 			orderBaseDuration: 5 * time.Second,
 			demoTimes:         10,
-			intervalTime:      2 * time.Second,
+			intervalTime:      15 * time.Second,
 			distanceLimit:     0.0001,
 		},
 	}
-	demo.initDemo(0, 0)
-
-	for page := 0; page < demo.demoTimes; page++ {
-		fmt.Println(page)
-
-		demo.OrderDemo()
-
-		demo.changeShifts()
-		time.Sleep(demo.intervalTime)
-	}
+	demo.doDemo()
 }

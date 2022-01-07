@@ -61,7 +61,6 @@ func generateRandomNumber(start int, end int, count int) []int {
 }
 
 func generateMapPoint() *Pos {
-	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	content, err := doGet(endpoint, locationProfix)
 	if err != nil {
 		fmt.Println(err)
@@ -134,4 +133,11 @@ func doDelete(endpoint, prefix string) ([]byte, error) {
 		return nil, err
 	}
 	return content, nil
+}
+
+func closeOrder(begin, end int) {
+	fmt.Println(begin, end)
+	for i := begin; i < end; i++ {
+		overOrder(i)
+	}
 }

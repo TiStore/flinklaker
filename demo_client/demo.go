@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 type Demo struct {
@@ -10,12 +11,28 @@ type Demo struct {
 	wg sync.WaitGroup
 }
 
+func (d *Demo) doDemo() {
+	d.initDemo(orderBegin, orderEnd)
+
+	for page := 0; page < d.demoTimes; page++ {
+		fmt.Println(page)
+
+		var oneTime sync.WaitGroup
+		oneTime.Add(1)
+		go func() {
+			time.Sleep(d.intervalTime)
+			oneTime.Done()
+		}()
+		d.OrderDemo()
+		d.changeShifts()
+		oneTime.Wait()
+	}
+	time.Sleep(15 * time.Second)
+}
+
 func (d *Demo) initDemo(begin, end int) {
 	if end > 0 {
-		fmt.Println(begin, end)
-		for i := begin; i < end; i++ {
-			overOrder(i)
-		}
+		closeOrder(begin, end)
 	}
 	d.getOffWorkInit()
 	d.goOnWork(d.initOnWorkNum)
