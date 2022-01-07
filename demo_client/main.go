@@ -42,9 +42,7 @@ func main() {
 	flag.IntVar(&orderEnd, "oe", 0, "")
 
 	if onlyCloseOrder {
-		for i := orderBegin; i < orderEnd; i++ {
-			overOrder(i)
-		}
+		closeOrder(orderBegin, orderEnd)
 		return
 	}
 
