@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -36,10 +35,9 @@ var orderBegin, orderEnd int
 
 func main() {
 
-	rand.Seed(time.Now().UnixNano())
-
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
+
 	FirstDemo()
 }
 
@@ -56,8 +54,6 @@ func FirstDemo() {
 			distanceLimit:     0.0001,
 		},
 	}
-	flag.IntVar(&orderBegin, "ob", 0, "")
-	flag.IntVar(&orderEnd, "oe", 0, "")
 	demo.initDemo(orderBegin, orderEnd)
 
 	for page := 0; page < demo.demoTimes; page++ {
