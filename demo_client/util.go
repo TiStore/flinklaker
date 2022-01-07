@@ -127,6 +127,8 @@ func doDelete(endpoint, prefix string) error {
 	if err != nil {
 		return err
 	}
+	content, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(content))
 	defer resp.Body.Close()
 	return nil
 }
