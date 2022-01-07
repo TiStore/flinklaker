@@ -118,6 +118,7 @@ func doPut(endpoint, prefix string) ([]byte, error) {
 
 func doDelete(endpoint, prefix string) error {
 	url := endpoint + prefix
+	fmt.Println("delete ", url)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return err
