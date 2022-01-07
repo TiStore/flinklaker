@@ -50,7 +50,7 @@ func ProcessOrderWithoutWG() {
 	overOrder(orderID)
 }
 
-func sendOrder(source, sink Pos) int64 {
+func sendOrder(source, sink Pos) int {
 	content, err := doPut(endpoint, fmt.Sprintf("%s?fromx=%f&fromy=%f&tox=%f&toy=%f", orderPrefix, source.x, source.y, sink.x, sink.y))
 	if err != nil {
 		fmt.Println(err)
@@ -63,18 +63,14 @@ func sendOrder(source, sink Pos) int64 {
 		fmt.Println(err)
 		return -1
 	}
-	id, ok := data["Id"].(int64)
-	for key, value := range data {
-		fmt.Println(key, value)
-	}
-	fmt.Println(ok, data["Id"])
+	id, ok := data["Id"].(float64)
 	if !ok {
 		return -1
 	}
-	return id
+	return int(id)
 }
 
-func overOrder(id int64) error {
+func overOrder(id int) error {
 	err := doDelete(endpoint, fmt.Sprintf("%s/%d", orderPrefix, id))
 	if err != nil {
 		fmt.Println(err)
