@@ -48,129 +48,128 @@ import java.util.Set;
 
 public class CollectSinkTableFactory implements DynamicTableSinkFactory {
 
-  public static final String FACTORY_ID = "collect";
+    public static final String IDENTIFIER = "collect";
 
-  // global results to collect and query
-  public static final Map<Integer, List<Row>> RESULT = new HashMap<>();
+    // global results to collect and query
+    public static final Map<Integer, List<Row>> RESULT = new HashMap<>();
 
-  @Override
-  public DynamicTableSink createDynamicTableSink(Context context) {
-    FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
-    helper.validate();
+    @Override
+    public DynamicTableSink createDynamicTableSink(Context context) {
+        FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        helper.validate();
 
-    TableSchema schema = context.getCatalogTable().getSchema();
-    RESULT.clear();
-    return new CollectTableSink(schema, context.getObjectIdentifier().getObjectName());
-  }
-
-  @Override
-  public String factoryIdentifier() {
-    return FACTORY_ID;
-  }
-
-  @Override
-  public Set<ConfigOption<?>> requiredOptions() {
-    return Collections.emptySet();
-  }
-
-  @Override
-  public Set<ConfigOption<?>> optionalOptions() {
-    return Collections.emptySet();
-  }
-
-  // --------------------------------------------------------------------------------------------
-  // Table sinks
-  // --------------------------------------------------------------------------------------------
-
-  /** Values {@link DynamicTableSink} for testing. */
-  private static class CollectTableSink implements DynamicTableSink {
-
-    private final TableSchema schema;
-    private final String tableName;
-
-    private CollectTableSink(TableSchema schema, String tableName) {
-      this.schema = schema;
-      this.tableName = tableName;
+        TableSchema schema = context.getCatalogTable().getSchema();
+        RESULT.clear();
+        return new CollectTableSink(schema, context.getObjectIdentifier().getObjectName());
     }
 
     @Override
-    public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
-      return ChangelogMode.newBuilder()
-          .addContainedKind(RowKind.INSERT)
-          .addContainedKind(RowKind.DELETE)
-          .addContainedKind(RowKind.UPDATE_AFTER)
-          .build();
+    public String factoryIdentifier() {
+        return IDENTIFIER;
     }
 
     @Override
-    public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-      final DataType rowType = schema.toPhysicalRowDataType();
-      final RowTypeInfo rowTypeInfo =
-          (RowTypeInfo) TypeConversions.fromDataTypeToLegacyInfo(rowType);
-      DataStructureConverter converter =
-          context.createDataStructureConverter(schema.toPhysicalRowDataType());
-      return SinkFunctionProvider.of(new CollectSinkFunction(converter, rowTypeInfo));
+    public Set<ConfigOption<?>> requiredOptions() {
+        return Collections.emptySet();
     }
 
     @Override
-    public DynamicTableSink copy() {
-      return new CollectTableSink(schema, tableName);
+    public Set<ConfigOption<?>> optionalOptions() {
+        return Collections.emptySet();
     }
 
-    @Override
-    public String asSummaryString() {
-      return "CollectSink";
-    }
-  }
+    // --------------------------------------------------------------------------------------------
+    // Table sinks
+    // --------------------------------------------------------------------------------------------
 
-  static class CollectSinkFunction extends RichSinkFunction<RowData>
-      implements CheckpointedFunction {
+    /** Values {@link DynamicTableSink} for testing. */
+    private static class CollectTableSink implements DynamicTableSink {
 
-    private static final long serialVersionUID = 1L;
-    private final DynamicTableSink.DataStructureConverter converter;
-    private final RowTypeInfo rowTypeInfo;
+        private final TableSchema schema;
+        private final String tableName;
 
-    protected transient ListState<Row> resultState;
-    protected transient List<Row> localResult;
-
-    private int taskID;
-
-    protected CollectSinkFunction(
-        DynamicTableSink.DataStructureConverter converter, RowTypeInfo rowTypeInfo) {
-      this.converter = converter;
-      this.rowTypeInfo = rowTypeInfo;
-    }
-
-    @Override
-    public void invoke(RowData value, SinkFunction.Context context) {
-      Row row = (Row) converter.toExternal(value);
-      assert row != null;
-      row.setKind(value.getRowKind());
-      RESULT.get(taskID).add(row);
-    }
-
-    @Override
-    public void initializeState(FunctionInitializationContext context) throws Exception {
-      this.resultState =
-          context
-              .getOperatorStateStore()
-              .getListState(new ListStateDescriptor<>("sink-results", rowTypeInfo));
-      this.localResult = new ArrayList<>();
-      if (context.isRestored()) {
-        for (Row value : resultState.get()) {
-          localResult.add(value);
+        private CollectTableSink(TableSchema schema, String tableName) {
+            this.schema = schema;
+            this.tableName = tableName;
         }
-      }
-      this.taskID = getRuntimeContext().getIndexOfThisSubtask();
-      synchronized (CollectSinkTableFactory.class) {
-        RESULT.put(taskID, localResult);
-      }
+
+        @Override
+        public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
+            return ChangelogMode.newBuilder()
+                    .addContainedKind(RowKind.INSERT)
+                    .addContainedKind(RowKind.DELETE)
+                    .addContainedKind(RowKind.UPDATE_AFTER)
+                    .build();
+        }
+
+        @Override
+        public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
+            final DataType rowType = schema.toPhysicalRowDataType();
+            final RowTypeInfo rowTypeInfo =
+                    (RowTypeInfo) TypeConversions.fromDataTypeToLegacyInfo(rowType);
+            DataStructureConverter converter =
+                    context.createDataStructureConverter(schema.toPhysicalRowDataType());
+            return SinkFunctionProvider.of(new CollectSinkFunction(converter, rowTypeInfo));
+        }
+
+        @Override
+        public DynamicTableSink copy() {
+            return new CollectTableSink(schema, tableName);
+        }
+
+        @Override
+        public String asSummaryString() {
+            return "CollectSink";
+        }
     }
 
-    @Override
-    public void snapshotState(FunctionSnapshotContext context) throws Exception {
-      resultState.clear();
-      resultState.addAll(RESULT.get(taskID));
+    static class CollectSinkFunction extends RichSinkFunction<RowData>
+            implements CheckpointedFunction {
+
+        private static final long serialVersionUID = 1L;
+        private final DynamicTableSink.DataStructureConverter converter;
+        private final RowTypeInfo rowTypeInfo;
+
+        protected transient ListState<Row> resultState;
+        protected transient List<Row> localResult;
+
+        private int taskID;
+
+        protected CollectSinkFunction(
+                DynamicTableSink.DataStructureConverter converter, RowTypeInfo rowTypeInfo) {
+            this.converter = converter;
+            this.rowTypeInfo = rowTypeInfo;
+        }
+
+        @Override
+        public void invoke(RowData value, SinkFunction.Context context) {
+            Row row = (Row) converter.toExternal(value);
+            assert row != null;
+            row.setKind(value.getRowKind());
+            RESULT.get(taskID).add(row);
+        }
+
+        @Override
+        public void initializeState(FunctionInitializationContext context) throws Exception {
+            this.resultState =
+                    context.getOperatorStateStore()
+                            .getListState(new ListStateDescriptor<>("sink-results", rowTypeInfo));
+            this.localResult = new ArrayList<>();
+            if (context.isRestored()) {
+                for (Row value : resultState.get()) {
+                    localResult.add(value);
+                }
+            }
+            this.taskID = getRuntimeContext().getIndexOfThisSubtask();
+            synchronized (CollectSinkTableFactory.class) {
+                RESULT.put(taskID, localResult);
+            }
+        }
+
+        @Override
+        public void snapshotState(FunctionSnapshotContext context) throws Exception {
+            resultState.clear();
+            resultState.addAll(RESULT.get(taskID));
+        }
     }
-  }
 }

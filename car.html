@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>车辆行驶</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+    <style>html, body, #container { height: 100%; width: 100%; } .input-card .btn{ margin-right: 1.2rem; width: 9rem; } .input-card .btn:last-child{ margin-right: 0; }</style></head>
+  
+  <body>
+    <div id="container"></div>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=您申请的key值"></script>
+    <script src="https://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+    <script>var map = new AMap.Map("container", {
+        resizeEnable: true,
+        center: [116.397428, 39.90923],
+        zoom: 17
+      });
+
+      var markers = new Map();
+      var orders = new Map();
+      var polylines = new Map();
+      var passedPolylines = new Map();
+
+      window.setInterval(showCars, 10000);
+      function showCars() {
+        $.get("http://ec2-18-189-241-127.us-east-2.compute.amazonaws.com:8080",
+        function(data) {
+          var cars = $.parseJSON(data);
+          console.log(cars);
+          cars.forEach((car, index) => {
+            for (var id in car) {
+              if (car[id]["detail"]["status"] == "idle") {
+                if (markers[id] == null) {
+                  var coordinates = car[id]["detail"]["coordinates"].split(",");
+                  var marker = new AMap.Marker({
+                    map: map,
+                    position: [coordinates[0] * 1, coordinates[1] * 1],
+                    icon: "https://webapi.amap.com/images/car.png",
+                    offset: new AMap.Pixel( - 26, -13),
+                    autoRotation: true,
+                    angle: -90,
+                  });
+                  markers[id] = marker;
+                }
+                if (car[id]["order"] == null) {
+                  if (orders[id] != null) {
+                    map.remove(polylines[orders[id]]);
+                    map.remove(passedPolylines[orders[id]]);
+                    delete orders[id];
+                  }
+                } else if (orders[id] == null) {
+                  orders[id] = car[id]["order"];
+                  var fromCoordinates = car[id]["order"]["coordinates"].split("|")[0].split(",");
+                  var toCoordinates = car[id]["order"]["coordinates"].split("|")[1].split(",");
+                  var lineArr = [[fromCoordinates[0] * 1, fromCoordinates[1] * 1], [toCoordinates[0] * 1, toCoordinates[1] * 1]];
+                  var polyline = new AMap.Polyline({
+                    map: map,
+                    path: lineArr,
+                    showDir: true,
+                    strokeColor: "#28F",
+                    //线颜色
+                    // strokeOpacity: 1,     //线透明度
+                    strokeWeight: 6,
+                    //线宽
+                    // strokeStyle: "solid"  //线样式
+                  });
+                  polylines[order_id] = polyline;
+                  var passedPolyline = new AMap.Polyline({
+                    map: map,
+                    // path: lineArr,
+                    strokeColor: "#AF5",
+                    //线颜色
+                    // strokeOpacity: 1,     //线透明度
+                    strokeWeight: 6,
+                    //线宽
+                    // strokeStyle: "solid"  //线样式
+                  });
+                  passedPolylines[order_id] = passedPolyline;
+                  marker.on('moving',
+                  function(e) {
+                    passedPolyline.setPath(e.passedPath);
+                  });
+                  marker.moveAlong(lineArr, 500);
+                }
+              } else if (markers[id] != null) {
+                map.remove(markers[id]);
+                delete markers[id];
+              }
+            }
+          });
+          map.setFitView();
+        });
+      }</script>
+  </body>
+
+</html>
