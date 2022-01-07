@@ -14,17 +14,17 @@ const (
 
 func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 	var source, sink *Pos
-	for i := 0; i < 20; i++ {
+	for {
 		source = generateMapPoint()
 		sink = generateMapPoint()
 		if source == nil || sink == nil {
 			continue
 		}
+		fmt.Println(*source, *sink, dis(*source, *sink))
 		if dis(*source, *sink) > d.distanceLimit {
 			break
 		}
 	}
-	fmt.Println(source, sink)
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance*5) * time.Second

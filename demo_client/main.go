@@ -53,7 +53,7 @@ func FirstDemo() {
 			distanceLimit:     0.0001,
 		},
 	}
-	demo.initDemo(0, 1000)
+	demo.initDemo(0, 0)
 
 	for page := 0; page < demo.demoTimes; page++ {
 		fmt.Println(page)
