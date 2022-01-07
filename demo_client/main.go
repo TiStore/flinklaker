@@ -64,7 +64,7 @@ func FirstDemo() {
 			orderBaseDuration: 15 * time.Second,
 			demoTimes:         10,
 			intervalTime:      15 * time.Second,
-			distanceLimit:     0.0001,
+			distanceLimit:     0.006,
 		},
 	}
 	demo.doDemo()
