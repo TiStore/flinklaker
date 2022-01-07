@@ -34,13 +34,18 @@ type Param struct {
 var orderBegin, orderEnd int
 var action int
 
-func main() {
-
+func init() {
 	flag.IntVar(&action, "t", 0, "")
 
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
+}
 
+func main() {
+
+	flag.Parse()
+
+	fmt.Println(action, orderBegin, orderEnd)
 	if action == 1 {
 		closeOrder(orderBegin, orderEnd)
 		return
