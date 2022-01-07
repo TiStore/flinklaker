@@ -331,7 +331,7 @@ go build
 ```
 // PUT /car/{id}?x=${x}&y=${y}
 // create a car or online a car
-// Example: curl -X PUT "http://localhost:8000/car/1?x=12&y=13"
+// Example: curl -X PUT "http://localhost:7998/car/1?x=12&y=13"
 ```
 
 ### 司机下班
@@ -341,7 +341,7 @@ go build
 ```
 // DELETE /car/{id}
 // offline a car
-// Example: curl -X DELETE "http://localhost:8000/car/1"
+// Example: curl -X DELETE "http://localhost:7998/car/1"
 ```
 
 ### 乘客下单
@@ -350,7 +350,7 @@ go build
 ```
 // PUT /order?fromx=?&fromy=?&tox=?toy=?
 // a new order
-// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12&toy=13"
+// Example: curl -X PUT "http://localhost:7998/order?fromx=1&fromy=2&tox=12&toy=13"
 // {"Id":3,"CarID":0,"FromX":1,"FromY":2,"ToX":12.2,"ToY":13.3,"Status":"waiting","CreateTime":"2022-01-06 21:40:23","UpdateTime":"2022-01-06 21:40:23"}
 ```
 
@@ -361,13 +361,13 @@ go build
 ```
 // DELETE /order/{orderID}
 // Finish an order
-// Example: curl -X DELETE "http://localhost:8000/order/1"
+// Example: curl -X DELETE "http://localhost:7998/order/1"
 ```
 ### 随机获取可用 location(调试用)
 
 ```
 // GET /location
 // get a location randomly
-// Example: curl -X GET "http://localhost:8000/location"
+// Example: curl -X GET "http://localhost:7998/location"
 // {"Id":20424,"X":40.25,"Y":115.53}
 ```
