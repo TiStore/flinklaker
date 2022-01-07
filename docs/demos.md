@@ -61,13 +61,9 @@ commit
     - 更新当前车辆状态为 running
     - 更新订单信息 order 到 running 
 
-Flink 实时推荐适合 车辆，并将下单数据更新到 TiDB:
-```
--- 设置下时区
-SET 'table.local-time-zone' = 'Asia/Shanghai';
-SET execution.result-mode=tableau;
-
--- 源表
+TiDB-CDC 将全增量数据同步到 Pravega 流式存储，提供给多个下游业务方消费，利用 Pravega 的流式存储能力和数据总线能力。
+```sql
+-- TiDB 业务表：快车信息表
 CREATE TABLE tidb_cars ( 
     `id` INT NOT NULL, 
      location_x DOUBLE,
@@ -87,7 +83,7 @@ WITH (
     'database-name' = 'test',
     'table-name' = 'cars');
 
--- 源表
+-- TiDB 业务表：乘客订单表
 CREATE TABLE tidb_orders ( 
      order_id INT NOT NULL, 
      car_id INT,
@@ -109,8 +105,111 @@ WITH (
     'password' = 'flinkpwd',
     'database-name' = 'test',
     'table-name' = 'orders');
- 
- -- 结果表
+
+-- Pravega 消息队列：快车信息表
+-- Pravega zk/controller 端口冲突需要自己指定，
+-- pravega-cli工具拉起后需要指定端口： config set 	controller-uri=localhost:9091
+CREATE TABLE pravega_cars (
+        `id` STRING NOT NULL,
+        location_x DOUBLE,
+        location_y DOUBLE,
+        status STRING,
+        create_time TIMESTAMP,
+        update_time TIMESTAMP,
+        PRIMARY KEY (`id`) NOT ENFORCED)
+   WITH (
+      'connector' = 'pravega',
+      'controller-uri' = 'tcp://localhost:9900',
+      'scope' = 'my-scope',
+      'scan.execution.type' = 'streaming',
+      'scan.reader-group.name' = 'group',
+      'scan.streams' = 'cars-stream',
+      'sink.stream' = 'cars-stream',
+      'sink.routing-key.field.name' = 'id',
+      'format' = 'debezium-json');
+
+-- Pravega 消息队列：乘客订单表
+CREATE TABLE pravega_orders (
+          order_id INT NOT NULL,
+          car_id INT,
+          from_x DOUBLE,
+          from_y DOUBLE,
+          to_x DOUBLE,
+          to_y DOUBLE,
+          status STRING,
+          create_time TIMESTAMP,
+          update_time TIMESTAMP,
+          PRIMARY KEY (`order_id`) NOT ENFORCED)
+   WITH (
+      'connector' = 'pravega',
+      'controller-uri' = 'tcp://localhost:9090',
+      'scope' = 'my-scope',
+      'scan.execution.type' = 'streaming',
+      'scan.reader-group.name' = 'group',
+      'scan.streams' = 'orders-stream',
+      'sink.stream' = 'orders-stream',
+      'sink.routing-key.field.name' = 'order_id',
+      'format' = 'debezium-json');
+
+-- 实时同步作业，将 TiDB 数据实时同步至消息队列Pravega
+begin statement  set;
+insert into pravega_cars select * from tidb_cars;
+insert into pravega_orders select * from pravega_orders;
+end;
+```
+
+
+
+下游业务方1： 实时推荐业务， Flink 实时推荐适合 车辆，并将下单数据更新到 TiDB:
+```sql
+-- 设置下时区
+SET 'table.local-time-zone' = 'Asia/Shanghai';
+SET execution.result-mode=tableau;
+
+-- Pravega 消息队列：快车信息表
+CREATE TABLE pravega_cars (
+           `id` INT NOT NULL,
+           location_x DOUBLE,
+           location_y DOUBLE,
+           status STRING,
+           create_time TIMESTAMP,
+           update_time TIMESTAMP,
+           PRIMARY KEY (`id`) NOT ENFORCED)
+   WITH (
+      'connector' = 'pravega',
+      'controller-uri' = 'tcp://localhost:9090',
+      'scope' = 'my-scope',
+      'scan.execution.type' = 'streaming',
+      'scan.reader-group.name' = 'group-1',
+      'scan.streams' = 'cars-stream',
+      'sink.stream' = 'cars-stream',
+      'sink.routing-key.field.name' = 'id',
+      'format' = 'debezium-json');
+
+-- Pravega 消息队列：乘客订单表
+CREATE TABLE pravega_orders (
+        order_id INT NOT NULL,
+        car_id INT,
+        from_x DOUBLE,
+        from_y DOUBLE,
+        to_x DOUBLE,
+        to_y DOUBLE,
+        status STRING,
+        create_time TIMESTAMP,
+        update_time TIMESTAMP,
+        PRIMARY KEY (`order_id`) NOT ENFORCED)
+   WITH (
+      'connector' = 'pravega',
+      'controller-uri' = 'tcp://localhost:9090',
+      'scope' = 'my-scope',
+      'scan.execution.type' = 'streaming',
+      'scan.reader-group.name' = 'group-1',
+      'scan.streams' = 'orders-stream',
+      'sink.stream' = 'orders-stream',
+      'sink.routing-key.field.name' = 'order_id',
+      'format' = 'debezium-json');
+
+ -- TiDB 业务表：车辆实时推荐结果表
  CREATE TABLE tidb_nearcars ( 
      order_id INT,
      cars STRING,
@@ -125,7 +224,7 @@ WITH (
      'password' = ''
 );   
 
-// 提交 Streaming SQL作业，提交后作业会一直running, 不管是订单状态更新了，还是车辆信息更新了，都会输出最新的推荐结果
+-- Flink 实时推荐作业，提交后作业会一直running, 不管是订单状态更新了，还是车辆信息更新了，都会输出最新的推荐结果
 INSERT INTO tidb_nearcars
 SELECT order_id, concat('[', LISTAGG(car_id), ']'),  CAST(0 as INT) as consumed, LOCALTIMESTAMP as create_time
 FROM 
@@ -137,12 +236,60 @@ FROM ( -- 按距离最短 取 TOP 10
       SELECT o.order_id, c.id as car_id,
       ROUND(SQRT((POWER(o.from_x - c.location_x, 2) + POWER(o.from_y - c.location_y, 2) ) ), 2) as distance
       FROM 
-         tidb_orders o LEFT JOIN 
-         tidb_cars c ON o.status = 'waiting' AND c.status = 'idle' ) t
+         pravega_orders o LEFT JOIN 
+         pravega_cars c ON o.status = 'waiting' AND c.status = 'idle' ) t
    ) 
 WHERE rownum <= 10) top_t
 GROUP BY order_id;
+```
 
+下游业务方2： 实时大屏团队， Flink 实时统计每分钟乘客订单数量，并更新到 TiDB:
+```sql
+SET 'table.local-time-zone' = 'Asia/Shanghai';
+SET execution.result-mode=tableau;
+
+-- Pravega 消息队列：乘客订单表
+CREATE TABLE pravega_orders (
+           order_id INT NOT NULL,
+           car_id INT,
+           from_x DOUBLE,
+           from_y DOUBLE,
+           to_x DOUBLE,
+           to_y DOUBLE,
+           status STRING,
+           create_time TIMESTAMP,
+           update_time TIMESTAMP,
+           PRIMARY KEY (`order_id`) NOT ENFORCED)
+   WITH (
+      'connector' = 'pravega',
+      'controller-uri' = 'tcp://localhost:9090',
+      'scope' = 'my-scope',
+      'scan.execution.type' = 'streaming',
+      'scan.reader-group.name' = 'group-2',
+      'scan.streams' = 'orders-stream',
+      'sink.stream' = 'orders-stream',
+      'sink.routing-key.field.name' = 'order_id',
+      'format' = 'debezium-json');
+
+-- TiDB 结果表：实时统计每分钟不同状态的订单数量
+CREATE TABLE tidb_order_minute_cnt (
+        time_minute STRING,
+        status STRING,
+        order_count BIGINT
+        PRIMARY KEY (time_minute,status) NOT ENFORCED)
+   WITH (
+      'connector' = 'jdbc',
+      'url' = 'jdbc:mysql://localhost:4000/test',
+      'table-name' = 'order_minute_cnt',
+      'username' = 'root',
+      'password' = ''
+      );
+
+-- TODO 如何展示呢？Flink 赛道 PPT 里可以这样写
+insert into tidb_order_minute_cnt
+select time_minute, status, count(order_id) as order_count from 
+(select  DATE_FORMAT(update_time, 'yyyy-MM-dd HH:mm') as time_minute, order_id, status from pravega_orders) t 
+group by time_minute, status
 ```
 
 2. 将下单数据更新到 TiDB
@@ -186,7 +333,7 @@ commit()
       1. WEB 前端数据从 DataLake 获取（离线分析）
 
 TiDB CDC 数据入湖 SQL 
-```
+```sql
 SET execution.checkpointing.interval=3s;
 -- 源表
 CREATE TABLE tidb_cars ( 
