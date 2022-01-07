@@ -82,6 +82,7 @@ func generateMapPoint() *Pos {
 		fmt.Println(err)
 		return nil
 	}
+	fmt.Println("One Pos", x, y)
 	return &Pos{x: x, y: y}
 }
 
