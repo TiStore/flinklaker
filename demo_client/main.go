@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -34,6 +35,8 @@ type Param struct {
 var orderBegin, orderEnd int
 
 func main() {
+
+	rand.Seed(time.Now().UnixNano())
 
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
