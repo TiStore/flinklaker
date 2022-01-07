@@ -61,6 +61,7 @@ func generateRandomNumber(start int, end int, count int) []int {
 }
 
 func generateMapPoint() *Pos {
+	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	content, err := doGet(endpoint, locationProfix)
 	if err != nil {
 		fmt.Println(err)
@@ -82,6 +83,7 @@ func generateMapPoint() *Pos {
 		fmt.Println(err)
 		return nil
 	}
+	fmt.Println("One Pos", x, y)
 	return &Pos{x: x, y: y}
 }
 
@@ -116,16 +118,20 @@ func doPut(endpoint, prefix string) ([]byte, error) {
 	return doRequest(req)
 }
 
-func doDelete(endpoint, prefix string) error {
+func doDelete(endpoint, prefix string) ([]byte, error) {
 	url := endpoint + prefix
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	content, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
-	return nil
+	if err != nil {
+		return nil, err
+	}
+	return content, nil
 }

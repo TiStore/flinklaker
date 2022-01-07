@@ -1,23 +1,28 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	carPrefix = "/car"
 )
 
-func getOffWork(n int) {
-	ids := generateRandomNumber(1, pointNum, n)
-	for _, id := range ids {
-		err := letCarGetOffWorkByID(id)
-		if err != nil {
-			fmt.Println(err)
-		}
+func (d *Demo) getOffWorkInit() {
+	for i := 0; i < d.pointNum; i++ {
+		letCarGetOffWorkByID(i)
 	}
 }
 
-func goOnWork(n int) {
-	ids := generateRandomNumber(1, pointNum, n)
+func (d *Demo) getOffWork(n int) {
+	ids := generateRandomNumber(1, d.pointNum, n)
+	for _, id := range ids {
+		letCarGoToWorkByID(id)
+	}
+}
+
+func (d *Demo) goOnWork(n int) {
+	ids := generateRandomNumber(1, d.pointNum, n)
 	for _, id := range ids {
 		_, err := letCarGoToWorkByID(id)
 		if err != nil {
@@ -26,8 +31,12 @@ func goOnWork(n int) {
 	}
 }
 
-func letCarGetOffWorkByID(id int) error {
-	return doDelete(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
+func letCarGetOffWorkByID(id int) bool {
+	_, err := doDelete(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
+	if err != nil {
+		fmt.Println(err)
+	}
+	return true
 }
 
 func letCarGoToWorkByID(id int) ([]byte, error) {

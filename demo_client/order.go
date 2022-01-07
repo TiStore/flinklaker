@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 )
@@ -11,43 +12,30 @@ const (
 	orderPrefix = "/order"
 )
 
-func ProcessOrder(wg *sync.WaitGroup) {
+func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 	var source, sink *Pos
 	for {
 		source = generateMapPoint()
 		sink = generateMapPoint()
-		if !cmp(*source, *sink) {
+		if source == nil || sink == nil {
+			continue
+		}
+		fmt.Println(*source, *sink, dis(*source, *sink))
+		if dis(*source, *sink) > d.distanceLimit {
 			break
 		}
 	}
-	fmt.Println(source, sink)
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
-	distanceDuration := time.Duration(distance) * time.Second
+	distanceDuration := time.Duration(distance*5) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
 	wg.Done()
-	time.Sleep(orderBaseDuration + distanceDuration)
-	fmt.Println(orderBaseDuration + distanceDuration)
-	overOrder(orderID)
-}
-
-func ProcessOrderWithoutWG() {
-	var source, sink *Pos
-	for {
-		source = generateMapPoint()
-		sink = generateMapPoint()
-		if !cmp(*source, *sink) {
+	for i := 0; i < 10; i++ {
+		time.Sleep(d.orderBaseDuration + distanceDuration)
+		if overOrder(orderID) {
 			break
 		}
 	}
-	fmt.Println(source, sink)
-	orderID := sendOrder(*source, *sink)
-	distance := dis(*sink, *source)
-	distanceDuration := time.Duration(distance) * time.Second
-	fmt.Printf("order Id : %d\n", orderID)
-	time.Sleep(orderBaseDuration + distanceDuration)
-	fmt.Println(orderBaseDuration + distanceDuration)
-	overOrder(orderID)
 }
 
 func sendOrder(source, sink Pos) int {
@@ -63,20 +51,18 @@ func sendOrder(source, sink Pos) int {
 		fmt.Println(err)
 		return -1
 	}
-	id, ok := data["Id"].(int)
-	for key, value := range data {
-		fmt.Println(key, value)
-	}
+	id, ok := data["Id"].(float64)
 	if !ok {
 		return -1
 	}
-	return id
+	return int(id)
 }
 
-func overOrder(id int) error {
-	err := doDelete(endpoint, fmt.Sprintf("%s/%d", orderPrefix, id))
+func overOrder(id int) bool {
+	content, err := doDelete(endpoint, fmt.Sprintf("%s/%d", orderPrefix, id))
 	if err != nil {
 		fmt.Println(err)
 	}
-	return err
+	fmt.Println(string(content))
+	return strings.HasPrefix(string(content), fmt.Sprintf("Finish order (id:%v) Success", id))
 }

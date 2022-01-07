@@ -14,7 +14,10 @@ import (
 
 var engine *xorm.Engine
 
+var ra *rand.Rand
+
 func main() {
+	ra = rand.New(rand.NewSource(time.Now().Unix()))
 	r := mux.NewRouter()
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", YourHandler)
@@ -86,7 +89,6 @@ type Location struct {
 // Example: curl -X GET "http://localhost:8000/location"
 // {"Id":20424,"X":40.25,"Y":115.53}
 func LocationHandler(w http.ResponseWriter, r *http.Request) {
-	ra := rand.New(rand.NewSource(time.Now().Unix()))
 	raws := engine.DB().QueryRow("select id,x,y from locations where id=?", ra.Int63n(36660)+1)
 	var loca Location
 	err := raws.Scan(&loca.Id, &loca.X, &loca.Y)
