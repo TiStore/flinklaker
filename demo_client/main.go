@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"sync"
 	"time"
@@ -21,9 +22,13 @@ const (
 	endpoint = "http://localhost:7998"
 )
 
+var orderBegin, orderEnd int
+
 func main() {
 
-	initDemo()
+	flag.IntVar(&orderBegin, "ob", 0, "")
+	flag.IntVar(&orderEnd, "oe", 0, "")
+	initDemo(orderBegin, orderEnd)
 
 	for page := 0; page < demoDuration; page++ {
 		fmt.Println(page)
@@ -35,7 +40,13 @@ func main() {
 	}
 }
 
-func initDemo() {
+func initDemo(begin, end int) {
+	if end > 0 {
+		fmt.Println(begin, end)
+		for i := begin; i < end; i++ {
+			overOrder(i)
+		}
+	}
 	getOffWorkInit()
 	goOnWork(initOnWorkNum)
 }

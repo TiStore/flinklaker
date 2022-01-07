@@ -14,14 +14,13 @@ const (
 
 func ProcessOrder(wg *sync.WaitGroup) {
 	var source, sink *Pos
-	for {
+	for i := 0; i < 3; i++ {
 		source = generateMapPoint()
 		sink = generateMapPoint()
 		if !cmp(*source, *sink) {
 			break
 		}
 	}
-	fmt.Println(source, sink)
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance*5) * time.Second
@@ -51,7 +50,6 @@ func ProcessOrderWithoutWG() {
 	distanceDuration := time.Duration(distance) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
 	time.Sleep(orderBaseDuration + distanceDuration)
-	fmt.Println(orderBaseDuration + distanceDuration)
 	overOrder(orderID)
 }
 
