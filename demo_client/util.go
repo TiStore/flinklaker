@@ -116,19 +116,21 @@ func doPut(endpoint, prefix string) ([]byte, error) {
 	return doRequest(req)
 }
 
-func doDelete(endpoint, prefix string) error {
+func doDelete(endpoint, prefix string) ([]byte, error) {
 	url := endpoint + prefix
 	fmt.Println("delete ", url)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	content, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(content))
 	defer resp.Body.Close()
-	return nil
+	if err != nil {
+		return nil, err
+	}
+	return content, nil
 }

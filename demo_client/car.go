@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	carPrefix = "/car"
@@ -9,10 +11,7 @@ const (
 func getOffWork(n int) {
 	ids := generateRandomNumber(1, pointNum, n)
 	for _, id := range ids {
-		err := letCarGetOffWorkByID(id)
-		if err != nil {
-			fmt.Println(err)
-		}
+		letCarGetOffWorkByID(id)
 	}
 }
 
@@ -26,8 +25,12 @@ func goOnWork(n int) {
 	}
 }
 
-func letCarGetOffWorkByID(id int) error {
-	return doDelete(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
+func letCarGetOffWorkByID(id int) bool {
+	_, err := doDelete(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
+	if err != nil {
+		fmt.Println(err)
+	}
+	return true
 }
 
 func letCarGoToWorkByID(id int) ([]byte, error) {

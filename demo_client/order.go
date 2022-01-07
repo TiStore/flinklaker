@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 )
@@ -23,12 +24,16 @@ func ProcessOrder(wg *sync.WaitGroup) {
 	fmt.Println(source, sink)
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
-	distanceDuration := time.Duration(distance) * time.Second
+	distanceDuration := time.Duration(distance*5) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
 	wg.Done()
-	time.Sleep(orderBaseDuration + distanceDuration)
-	fmt.Println(orderBaseDuration + distanceDuration)
-	overOrder(orderID)
+	for i := 0; i < 10; i++ {
+		time.Sleep(orderBaseDuration + distanceDuration)
+		fmt.Println(orderBaseDuration + distanceDuration)
+		if overOrder(orderID) {
+			break
+		}
+	}
 }
 
 func ProcessOrderWithoutWG() {
@@ -70,10 +75,10 @@ func sendOrder(source, sink Pos) int {
 	return int(id)
 }
 
-func overOrder(id int) error {
-	err := doDelete(endpoint, fmt.Sprintf("%s/%d", orderPrefix, id))
+func overOrder(id int) bool {
+	content, err := doDelete(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
 	if err != nil {
 		fmt.Println(err)
 	}
-	return err
+	return strings.HasPrefix(string(content), fmt.Sprintf("Finish order (id:%v) Success", id))
 }

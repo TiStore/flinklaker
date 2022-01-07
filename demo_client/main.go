@@ -14,9 +14,9 @@ const (
 	changeShiftsNum = 300
 	orderNum        = 50
 
-	orderBaseDuration = 1 * time.Second
+	orderBaseDuration = 5 * time.Second
 	demoDuration      = 20
-	intervalTime      = 1 * time.Second
+	intervalTime      = 2 * time.Second
 
 	endpoint = "http://localhost:7998"
 )

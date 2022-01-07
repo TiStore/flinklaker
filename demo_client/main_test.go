@@ -9,10 +9,7 @@ import (
 func TestMiniDemo(t *testing.T) {
 	ids := generateRandomNumber(1, 20, 10)
 	for _, id := range ids {
-		err := letCarGetOffWorkByID(id)
-		if err != nil {
-			fmt.Println(err)
-		}
+		letCarGetOffWorkByID(id)
 	}
 	goOnWork(20)
 
@@ -35,10 +32,7 @@ func TestMiniDemo(t *testing.T) {
 func getOffWorkTest(n int) {
 	ids := generateRandomNumber(1, 20, n)
 	for _, id := range ids {
-		err := letCarGetOffWorkByID(id)
-		if err != nil {
-			fmt.Println(err)
-		}
+		letCarGetOffWorkByID(id)
 	}
 }
 
