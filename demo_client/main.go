@@ -67,14 +67,5 @@ func FirstDemo() {
 			distanceLimit:     0.0001,
 		},
 	}
-	demo.initDemo(orderBegin, orderEnd)
-
-	for page := 0; page < demo.demoTimes; page++ {
-		fmt.Println(page)
-
-		demo.OrderDemo()
-
-		demo.changeShifts()
-		time.Sleep(demo.intervalTime)
-	}
+	demo.doDemo()
 }
