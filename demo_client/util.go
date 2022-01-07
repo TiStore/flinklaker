@@ -61,6 +61,7 @@ func generateRandomNumber(start int, end int, count int) []int {
 }
 
 func generateMapPoint() *Pos {
+	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	content, err := doGet(endpoint, locationProfix)
 	if err != nil {
 		fmt.Println(err)
