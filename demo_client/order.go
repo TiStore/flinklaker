@@ -76,7 +76,7 @@ func sendOrder(source, sink Pos) int {
 }
 
 func overOrder(id int) bool {
-	content, err := doDelete(endpoint, fmt.Sprintf("%s/%d", carPrefix, id))
+	content, err := doDelete(endpoint, fmt.Sprintf("%s/%d", orderPrefix, id))
 	if err != nil {
 		fmt.Println(err)
 	}
