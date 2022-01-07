@@ -64,6 +64,9 @@ func sendOrder(source, sink Pos) int {
 		return -1
 	}
 	id, ok := data["Id"].(int)
+	for key, value := range data {
+		fmt.Println(key, value)
+	}
 	if !ok {
 		return -1
 	}
