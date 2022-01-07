@@ -27,7 +27,7 @@ func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 	}
 	orderID := sendOrder(*source, *sink)
 	distance := dis(*sink, *source)
-	distanceDuration := time.Duration(distance*5) * time.Second
+	distanceDuration := time.Duration(distance*500) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
 	wg.Done()
 	for i := 0; i < 10; i++ {

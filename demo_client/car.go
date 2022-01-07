@@ -17,7 +17,7 @@ func (d *Demo) getOffWorkInit() {
 func (d *Demo) getOffWork(n int) {
 	ids := generateRandomNumber(1, d.pointNum, n)
 	for _, id := range ids {
-		letCarGoToWorkByID(id)
+		letCarGetOffWorkByID(id)
 	}
 }
 

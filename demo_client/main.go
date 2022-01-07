@@ -58,10 +58,10 @@ func FirstDemo() {
 	demo := &Demo{
 		Param: Param{
 			pointNum:          50,
-			initOnWorkNum:     10,
-			changeShiftsNum:   3,
+			initOnWorkNum:     12,
+			changeShiftsNum:   4,
 			orderNum:          3,
-			orderBaseDuration: 5 * time.Second,
+			orderBaseDuration: 15 * time.Second,
 			demoTimes:         10,
 			intervalTime:      15 * time.Second,
 			distanceLimit:     0.0001,
