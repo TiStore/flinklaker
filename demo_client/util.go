@@ -134,3 +134,10 @@ func doDelete(endpoint, prefix string) ([]byte, error) {
 	}
 	return content, nil
 }
+
+func closeOrder(begin, end int) {
+	fmt.Println(begin, end)
+	for i := begin; i < end; i++ {
+		overOrder(i)
+	}
+}

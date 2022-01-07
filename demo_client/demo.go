@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -12,10 +11,7 @@ type Demo struct {
 
 func (d *Demo) initDemo(begin, end int) {
 	if end > 0 {
-		fmt.Println(begin, end)
-		for i := begin; i < end; i++ {
-			overOrder(i)
-		}
+		closeOrder(begin, end)
 	}
 	d.getOffWorkInit()
 	d.goOnWork(d.initOnWorkNum)
