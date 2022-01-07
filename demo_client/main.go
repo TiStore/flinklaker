@@ -63,7 +63,7 @@ func FirstDemo() {
 			orderNum:          3,
 			orderBaseDuration: 5 * time.Second,
 			demoTimes:         10,
-			intervalTime:      2 * time.Second,
+			intervalTime:      15 * time.Second,
 			distanceLimit:     0.0001,
 		},
 	}

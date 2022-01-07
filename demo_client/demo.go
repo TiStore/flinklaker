@@ -17,10 +17,15 @@ func (d *Demo) doDemo() {
 	for page := 0; page < d.demoTimes; page++ {
 		fmt.Println(page)
 
+		var oneTime sync.WaitGroup
+		oneTime.Add(1)
+		go func() {
+			time.Sleep(d.intervalTime)
+			oneTime.Done()
+		}()
 		d.OrderDemo()
-
 		d.changeShifts()
-		time.Sleep(d.intervalTime)
+		oneTime.Wait()
 	}
 	time.Sleep(15 * time.Second)
 }
