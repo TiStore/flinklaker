@@ -80,5 +80,6 @@ func overOrder(id int) bool {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(string(content))
 	return strings.HasPrefix(string(content), fmt.Sprintf("Finish order (id:%v) Success", id))
 }
