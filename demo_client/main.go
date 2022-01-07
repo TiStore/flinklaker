@@ -36,7 +36,7 @@ func main() {
 }
 
 func initDemo() {
-	getOffWork(pointNum)
+	getOffWorkInit()
 	goOnWork(initOnWorkNum)
 }
 

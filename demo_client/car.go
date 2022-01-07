@@ -8,6 +8,12 @@ const (
 	carPrefix = "/car"
 )
 
+func getOffWorkInit() {
+	for i := 0; i < pointNum; i++ {
+		letCarGetOffWorkByID(i)
+	}
+}
+
 func getOffWork(n int) {
 	ids := generateRandomNumber(1, pointNum, n)
 	for _, id := range ids {
