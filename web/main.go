@@ -29,7 +29,7 @@ func main() {
 		panic(err)
 	}
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(":7998", r))
 }
 
 func YourHandler(w http.ResponseWriter, r *http.Request) {
