@@ -10,7 +10,7 @@ import (
 
 const (
 	orderPrefix      = "/order"
-	orderDelayPrefix = "/order"
+	orderDelayPrefix = "/orderDelay"
 )
 
 func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {

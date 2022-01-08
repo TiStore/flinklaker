@@ -67,8 +67,8 @@ func FirstDemo() {
 			initOnWorkNum:     12,
 			changeShiftsNum:   4,
 			orderNum:          3,
-			orderBaseDuration: 1 * time.Second,
-			disDura:           0,
+			orderBaseDuration: 3 * time.Second,
+			disDura:           10,
 			demoTimes:         10,
 			intervalTime:      5 * time.Second,
 			distanceLimit:     0.006,
@@ -89,7 +89,6 @@ func OneOrderDemo() {
 			demoTimes:         1,
 			intervalTime:      30 * time.Second,
 			distanceLimit:     0.006,
-			delayRequest:      true,
 		},
 	}
 	demo.doDemo()

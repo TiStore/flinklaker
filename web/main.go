@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -16,6 +19,9 @@ var engine *xorm.Engine
 
 var ra *rand.Rand
 
+var sleepCheck int = 2
+var lock sync.Mutex
+
 func main() {
 	ra = rand.New(rand.NewSource(time.Now().Unix()))
 	r := mux.NewRouter()
@@ -25,6 +31,7 @@ func main() {
 	r.HandleFunc("/car/{id}", CarHandler)
 	r.HandleFunc("/order/{id}", OrderHandler)
 	r.HandleFunc("/orderDelay/{id}", OrderDelayHandler)
+	r.HandleFunc("/sleep", SetSleepHandler)
 	r.HandleFunc("/order", OrderHandler)
 	r.HandleFunc("/location", LocationHandler)
 	var err error
@@ -43,9 +50,11 @@ func main() {
 
 func CheckAndRunninigOrders() {
 	for {
-		time.Sleep(12 * time.Second) //just demo
+		lock.Lock()
+		time.Sleep(time.Duration(sleepCheck) * time.Second) //just demo
 		err := checkAndRunOrders()
 		log.Println("Finished check and process table nearcars", err)
+		lock.Unlock()
 	}
 }
 
@@ -59,6 +68,22 @@ func CarHandler(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodDelete {
 		DeleteCar(w, r)
 	}
+}
+
+func SetSleepHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPut {
+		t, err := strconv.ParseInt(r.URL.Query().Get("time"), 10, 64)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		}
+		lock.Lock()
+		sleepCheck = int(t)
+		lock.Unlock()
+		w.Write([]byte("ok"))
+	} else {
+		w.Write([]byte(fmt.Sprintf("%d", sleepCheck)))
+	}
+
 }
 
 func OrderHandler(w http.ResponseWriter, r *http.Request) {
