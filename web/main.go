@@ -24,6 +24,7 @@ func main() {
 
 	r.HandleFunc("/car/{id}", CarHandler)
 	r.HandleFunc("/order/{id}", OrderHandler)
+	r.HandleFunc("/orderDelay/{id}", OrderDelayHandler)
 	r.HandleFunc("/order", OrderHandler)
 	r.HandleFunc("/location", LocationHandler)
 	var err error
@@ -42,7 +43,7 @@ func main() {
 
 func CheckAndRunninigOrders() {
 	for {
-		time.Sleep(time.Second * 5) //just demo
+		time.Sleep(12 * time.Second) //just demo
 		err := checkAndRunOrders()
 		log.Println("Finished check and process table nearcars", err)
 	}
@@ -63,6 +64,14 @@ func CarHandler(w http.ResponseWriter, r *http.Request) {
 func OrderHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPut {
 		PutNewOrder(w, r)
+	} else if r.Method == http.MethodDelete {
+		DeleteOrder(w, r)
+	}
+}
+
+func OrderDelayHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPut {
+		PutNewDelayOrder(w, r)
 	} else if r.Method == http.MethodDelete {
 		DeleteOrder(w, r)
 	}

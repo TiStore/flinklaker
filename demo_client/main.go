@@ -31,6 +31,8 @@ type Param struct {
 	intervalTime time.Duration
 
 	distanceLimit float64
+
+	delayRequest bool
 }
 
 var orderBegin, orderEnd int
@@ -53,6 +55,8 @@ func main() {
 		return
 	} else if action == 0 {
 		FirstDemo()
+	} else if action == 2 {
+		OneOrderDemo()
 	}
 }
 
@@ -68,6 +72,24 @@ func FirstDemo() {
 			demoTimes:         10,
 			intervalTime:      5 * time.Second,
 			distanceLimit:     0.006,
+		},
+	}
+	demo.doDemo()
+}
+
+func OneOrderDemo() {
+	demo := &Demo{
+		Param: Param{
+			pointNum:          50,
+			initOnWorkNum:     15,
+			changeShiftsNum:   0,
+			orderNum:          1,
+			orderBaseDuration: 30 * time.Second,
+			disDura:           39,
+			demoTimes:         1,
+			intervalTime:      30 * time.Second,
+			distanceLimit:     0.006,
+			delayRequest:      true,
 		},
 	}
 	demo.doDemo()

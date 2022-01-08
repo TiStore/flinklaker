@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	orderPrefix = "/order"
+	orderPrefix      = "/order"
+	orderDelayPrefix = "/order"
 )
 
 func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
@@ -25,7 +26,12 @@ func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 			break
 		}
 	}
-	orderID := sendOrder(*source, *sink)
+	var orderID int
+	if d.delayRequest {
+		orderID = sendOrder(orderDelayPrefix, *source, *sink)
+	} else {
+		orderID = sendOrder(orderPrefix, *source, *sink)
+	}
 	distance := dis(*sink, *source)
 	distanceDuration := time.Duration(distance*90) * time.Second
 	fmt.Printf("order Id : %d\n", orderID)
@@ -39,7 +45,7 @@ func (d *Demo) ProcessOrder(wg *sync.WaitGroup) {
 	}
 }
 
-func sendOrder(source, sink Pos) int {
+func sendOrder(orderPrefix string, source, sink Pos) int {
 	content, err := doPut(endpoint, fmt.Sprintf("%s?fromx=%f&fromy=%f&tox=%f&toy=%f", orderPrefix, source.x, source.y, sink.x, sink.y))
 	if err != nil {
 		fmt.Println(err)

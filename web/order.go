@@ -102,6 +102,58 @@ func PutNewOrder(w http.ResponseWriter, r *http.Request) {
 	writeJson(w, order)
 }
 
+// PUT /orderDelay?fromx=?&fromy=?&tox=?toy=?
+// a new order
+// Example: curl -X PUT "http://localhost:8000/order?fromx=1&fromy=2&tox=12.2&toy=13.3"
+// {"Id":3,"CarID":0,"FromX":1,"FromY":2,"ToX":12.2,"ToY":13.3,"Status":"waiting","CreateTime":"2022-01-06 21:40:23","UpdateTime":"2022-01-06 21:40:23"}
+func PutNewDelayOrder(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	order := &Order{}
+	var err error
+	defer func() {
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+	}()
+	order.FromX, err = strconv.ParseFloat(values.Get("fromx"), 64)
+	if err != nil {
+		err = fmt.Errorf("parse arg(fromx) faild:%v", err)
+		return
+	}
+	order.FromY, err = strconv.ParseFloat(values.Get("fromy"), 64)
+	if err != nil {
+		err = fmt.Errorf("parse arg(fromy) faild:%v", err)
+		return
+	}
+
+	order.ToX, err = strconv.ParseFloat(values.Get("tox"), 64)
+	if err != nil {
+		err = fmt.Errorf("parse arg(tox) faild:%v", err)
+		return
+	}
+	order.ToY, err = strconv.ParseFloat(values.Get("toy"), 64)
+	if err != nil {
+		err = fmt.Errorf("parse arg(toy) faild:%v", err)
+		return
+	}
+	order.initTime()
+	order.Status = "waiting"
+	var res sql.Result
+	res, err = engine.Exec("insert into orders set from_x=?,from_y=?,to_x=?,to_y=?,status=?,create_time=?,update_time=?",
+		order.FromX, order.FromY, order.ToX, order.ToY, order.Status, order.CreateTime, order.UpdateTime)
+	if err != nil {
+		err = fmt.Errorf("insert  db(order) failed:%v", err)
+		return
+	}
+	order.Id, err = res.LastInsertId()
+	if err != nil || order.Id == 0 {
+		err = fmt.Errorf("insert  db(order) failed:%v,lastinsertID:%d", err, order.Id)
+		return
+	}
+	writeJson(w, order)
+}
+
 // DELETE /order/{orderID}
 // Finish an order
 // Example: curl -X DELETE "http://localhost:8000/order/1"
