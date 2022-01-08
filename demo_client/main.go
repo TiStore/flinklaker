@@ -61,9 +61,9 @@ func FirstDemo() {
 			initOnWorkNum:     12,
 			changeShiftsNum:   4,
 			orderNum:          3,
-			orderBaseDuration: 15 * time.Second,
+			orderBaseDuration: 5 * time.Second,
 			demoTimes:         10,
-			intervalTime:      15 * time.Second,
+			intervalTime:      5 * time.Second,
 			distanceLimit:     0.006,
 		},
 	}
