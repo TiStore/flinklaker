@@ -25,8 +25,10 @@ type Param struct {
 	changeShiftsNum   int
 	orderNum          int
 	orderBaseDuration time.Duration
-	demoTimes         int
-	intervalTime      time.Duration
+	disDura           int
+
+	demoTimes    int
+	intervalTime time.Duration
 
 	distanceLimit float64
 }
@@ -61,7 +63,8 @@ func FirstDemo() {
 			initOnWorkNum:     12,
 			changeShiftsNum:   4,
 			orderNum:          3,
-			orderBaseDuration: 6 * time.Second,
+			orderBaseDuration: 1 * time.Second,
+			disDura:           0,
 			demoTimes:         10,
 			intervalTime:      5 * time.Second,
 			distanceLimit:     0.006,
