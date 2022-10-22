@@ -57,6 +57,8 @@ func main() {
 		FirstDemo()
 	} else if action == 2 {
 		OneOrderDemo()
+	} else if action == 3 {
+		ManyOrdersDemo()
 	}
 }
 
@@ -89,6 +91,23 @@ func OneOrderDemo() {
 			demoTimes:         1,
 			intervalTime:      30 * time.Second,
 			distanceLimit:     0.006,
+		},
+	}
+	demo.doDemo()
+}
+
+func ManyOrdersDemo() {
+	demo := &Demo{
+		Param: Param{
+			pointNum:          36000,
+			initOnWorkNum:     1000,
+			changeShiftsNum:   300,
+			orderNum:          100,
+			orderBaseDuration: 1 * time.Second,
+			disDura:           39,
+			demoTimes:         100,
+			intervalTime:      30 * time.Second,
+			distanceLimit:     0.01,
 		},
 	}
 	demo.doDemo()
