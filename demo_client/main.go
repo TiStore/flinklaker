@@ -37,12 +37,14 @@ type Param struct {
 
 var orderBegin, orderEnd int
 var action int
+var getOffWork int
 
 func init() {
 	flag.IntVar(&action, "t", 0, "")
 
 	flag.IntVar(&orderBegin, "ob", 0, "")
 	flag.IntVar(&orderEnd, "oe", 0, "")
+	flag.IntVar(&getOffWork, "oe", 0, "")
 }
 
 func main() {

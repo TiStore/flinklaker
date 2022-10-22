@@ -34,7 +34,9 @@ func (d *Demo) initDemo(begin, end int) {
 	if end > 0 {
 		closeOrder(begin, end)
 	}
-	d.getOffWorkInit()
+	if getOffWork > 0 {
+		d.getOffWorkInit()
+	}
 	d.goOnWork(d.initOnWorkNum)
 }
 

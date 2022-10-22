@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 const (
@@ -11,6 +12,7 @@ const (
 func (d *Demo) getOffWorkInit() {
 	for i := 0; i < d.pointNum; i++ {
 		letCarGetOffWorkByID(i)
+		fmt.Println(i)
 	}
 }
 
@@ -36,10 +38,12 @@ func letCarGetOffWorkByID(id int) bool {
 	if err != nil {
 		fmt.Println(err)
 	}
+	time.Sleep(10 * time.Millisecond)
 	return true
 }
 
 func letCarGoToWorkByID(id int) ([]byte, error) {
 	pos := generateMapPoint()
+	fmt.Println(pos)
 	return doPut(endpoint, fmt.Sprintf("%s/%d?x=%f&y=%f", carPrefix, id, pos.x, pos.y))
 }
